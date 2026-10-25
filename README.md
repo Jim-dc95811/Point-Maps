@@ -33,7 +33,9 @@ It uses Python 3 standard-library modules plus Tkinter.
 
 **Current release: PointLayer 1.3**
 
-The runnable files are at the repository root:
+**[Download PointLayer v1.3](releases/PointLayer_v1.3.zip)**
+
+The runnable/source files are also at the repository root:
 
 - `PointLayer.py`
 - `PointLayer.bat`
@@ -157,6 +159,18 @@ See **[docs/SOURCE_EXAMPLES.md](docs/SOURCE_EXAMPLES.md)**.
 - [Public Source Examples](docs/SOURCE_EXAMPLES.md)
 - [Project Notes](docs/PROJECT_NOTES.md)
 - [Changelog](CHANGELOG.md)
+- **[Continuity / Current Project State](CONTINUITY.md)**
+
+## Change control
+
+PointLayer uses a deliberate maintenance rule:
+
+- discuss functional changes first
+- make one functional modification at a time
+- do not add unrelated improvements during that change
+- every code modification gets a new version number
+
+The current known-good release remains **PointLayer 1.3**.
 
 ## Data responsibility
 
