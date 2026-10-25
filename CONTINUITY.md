@@ -195,9 +195,7 @@ Do not automatically describe a municipal utility source as complete countywide 
 
 By the end of the initial project session, five neighboring hydrant sources had been converted and displayed together in ArcGIS Earth.
 
-The project screenshot is stored as:
-
-`assets/five_counties.jpg`
+The five-source result and acceptance findings are documented in `docs/FIELD_TESTS.md`. The original ArcGIS Earth screenshots were captured during testing but are not required for the runnable package.
 
 This established that the generalized PointLayer workflow can be repeated across multiple independent public ArcGIS point services.
 
@@ -258,7 +256,6 @@ The repository distributes:
 - technical documentation
 - field-test notes
 - public source examples
-- project screenshots
 
 It should **not** become a redistributed archive of agency hydrant datasets.
 
