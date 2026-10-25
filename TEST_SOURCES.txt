@@ -1,0 +1,24 @@
+PointLayer 1.3 - Development / Acceptance Sources
+
+NASSAU COUNTY FLORIDA - WATER HYDRANTS
+Service root:
+https://services5.arcgis.com/F73IhFZbCCYUexxB/arcgis/rest/services/Water_Hydrant/FeatureServer
+Resolved point layer ID: 458
+Manual comparison file contained: 3,250 points
+Useful manually-selected fields:
+  Type_
+  NameofOwner
+  FULLADDRESS
+Accepted ArcGIS Earth LOD reference: 12000
+
+DUVAL COUNTY FLORIDA - JFRD/JEA HYDRANTS 2026
+Layer URL:
+https://maps.coj.net/coj/rest/services/HydrantsInspections/JFRD_JEA_Hydrants_2026_Mobile/FeatureServer/3
+Manual comparison file contained: 30,688 points
+Useful manually-selected fields in comparison:
+  JFRD_STREET_NUM
+  JFRD_STREET_NAME
+  JFRD_LAT
+  JFRD_LONG
+  JFRD_MAIN_SIZE
+Accepted ArcGIS Earth LOD reference: 30000
