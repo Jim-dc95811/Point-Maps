@@ -275,14 +275,15 @@ Public accessibility does not guarantee identical licensing, redistribution, att
 
 ## Relationship to larger ArcGIS Earth work
 
-Point Maps is a focused side project within a broader ArcGIS Earth/offline mapping effort that also includes:
+Point Maps is a focused component of the **ArcGIS Earth Unlocked** project family (https://github.com/Jim-dc95811/ArcGIS-Earth-Unlocked), which also includes:
 
 - TPKX/offline imagery production
 - MBTiles -> TPKX conversion
 - Master 4 geographic grids
 - Parcel100 property overlays
 - PRAVE / ME tracking
-- planned joystick-based ArcGIS Earth navigation
+- EarthStick 1.0 joystick navigation
+- ArcGIS Earth Object Factory v1.0
 
 PointLayer should remain a focused point-layer utility rather than absorbing unrelated functions.
 
@@ -294,6 +295,5 @@ Possible future directions exist, but none are approved merely by appearing here
 - additional built-in symbols
 - better LOD recommendation logic based on density/extent
 - additional documentation/video
-- inclusion in a future ArcGIS Earth Tools umbrella repository
 
 Any functional change still follows the strict one-change/new-version rule above.
