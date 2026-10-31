@@ -13,7 +13,7 @@ Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for 
 
 The current tool is **PointLayer 1.3**.
 
-![Nassau County fire hydrant in ArcGIS Earth](assets/Nassau_County_Fire_Hydrant.svg)
+![Nassau County fire hydrant in ArcGIS Earth](assets/Nassau_County_Fire_Hydrant.jpg)
 
 *Nassau County fire hydrant in ArcGIS Earth: the point remains visually clean on the map and opens its published attributes when clicked.*
 
