@@ -1,0 +1,1 @@
+Point-Maps visual assets.
