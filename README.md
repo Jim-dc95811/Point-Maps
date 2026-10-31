@@ -5,7 +5,7 @@
 ### **⬇️ [DOWNLOAD POINTLAYER v1.3](releases/PointLayer_v1.3.zip)**
 Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for ArcGIS Earth.
 
-> **ArcGIS Earth Unlocked:** PointLayer is the public point-data ingestion component of the broader project family. See the [master system map](https://github.com/Jim-dc95811/Earth-Beacon/blob/main/ARCGIS_EARTH_UNLOCKED.md) and the [ArcGIS Earth Object Factory](https://github.com/Jim-dc95811/Earth-Beacon).
+> **ArcGIS Earth Unlocked:** PointLayer is the public point-data ingestion component of the broader project family. See the [master system map](https://github.com/Jim-dc95811/Earth-Beacon/blob/main/ARCGIS_EARTH_UNLOCKED.md) and the [ArcGIS Earth Object Factory](https://github.com/Jim-dc95811/ArcGIS-Earth-Object-Factory).
 
 **Point Maps** is a practical ArcGIS Earth overlay project built around one simple idea:
 
@@ -22,6 +22,19 @@ flowchart LR
     D --> F[Offline ArcGIS Earth]
 ```
 
+## Quick start
+
+1. Run `PointLayer.bat`.
+2. Paste an ArcGIS `FeatureServer` or `MapServer` service root, or a specific layer URL.
+3. Click **Read Service**.
+4. If the service contains several point layers, choose the one you want.
+5. Select only the fields you want in the finished popup.
+6. Choose **KMZ**, **GeoJSON**, or both.
+7. For KMZ, select an icon, icon scale, and LOD cutoff.
+8. Leave **Hide labels** checked if you want a clean map and prefer to click a point to see its information.
+9. Click **BUILD**.
+10. Open the finished KMZ in ArcGIS Earth.
+
 ## What PointLayer does
 
 PointLayer reads a public/queryable ArcGIS **point** layer, lets the user keep only the fields that matter, downloads the complete published layer, and creates:
@@ -36,11 +49,9 @@ PointLayer does **not** require QGIS, ArcGIS Pro, ArcPy, GDAL, GeoPandas, or the
 
 It uses Python 3 standard-library modules plus Tkinter.
 
-## Download
+## Release details
 
 **Current release: PointLayer 1.3**
-
-**[Download PointLayer v1.3](releases/PointLayer_v1.3.zip)**
 
 The runnable/source files are also at the repository root:
 
@@ -50,19 +61,6 @@ The runnable/source files are also at the repository root:
 - `TEST_SOURCES.txt`
 
 GitHub users can also use **Code -> Download ZIP** to download the repository as one package.
-
-## Quick start
-
-1. Run `PointLayer.bat`.
-2. Paste an ArcGIS `FeatureServer` or `MapServer` service root, or a specific layer URL.
-3. Click **Read Service**.
-4. If the service contains several point layers, choose the one you want.
-5. Select only the fields you want in the finished popup.
-6. Choose **KMZ**, **GeoJSON**, or both.
-7. For KMZ, select an icon, icon scale, and LOD cutoff.
-8. Leave **Hide labels** checked if you want a clean map and prefer to click a point to see its information.
-9. Click **BUILD**.
-10. Open the finished KMZ in ArcGIS Earth.
 
 ## Why service roots matter
 
