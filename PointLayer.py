@@ -1,5 +1,19 @@
+"""PointLayer 1.4
+
+1.4 hardening (discovery, field selection, batching, LOD suggestion, icons and the
+KMZ/GeoJSON layout unchanged from 1.3):
+  - every requested object ID is checked; missing features are asked for once more
+    and any still missing are reported (the layer is still written)
+  - characters that are illegal in XML are removed from KML text, so one bad record
+    can no longer make the whole KMZ unreadable
+  - the KML Region gets a non-zero size when all points share a latitude or longitude
+  - points without a location are counted and reported instead of dropped silently
+  - asks before replacing an existing output; files are written as .partial first
+  - a custom icon must really be a PNG
+"""
 import json
 import math
+import os
 import re
 import struct
 import threading
@@ -15,7 +29,7 @@ from tkinter import filedialog, messagebox, ttk
 from xml.sax.saxutils import escape
 
 APP_NAME = "PointLayer"
-VERSION = "1.3"
+VERSION = "1.4"
 TIMEOUT = 90
 RETRIES = 3
 DEFAULT_PRECISION = 7
@@ -223,6 +237,58 @@ def query_feature_batch_resilient(layer_url, ids, fields, precision,
         return left + right
 
 
+def download_all_features(layer_url, ids, oid_field, fields, batch_size, precision=DEFAULT_PRECISION,
+                          status_callback=None, retry_callback=None, progress_callback=None):
+    """Download every published feature and report any the service did not return.
+
+    The object-ID field is always requested (only the chosen fields are written) so each
+    returned feature can be matched to its ID. Missing IDs are requested once more.
+    Returns (features, missing_ids)."""
+    request_fields = list(fields)
+    if oid_field and oid_field not in request_fields:
+        request_fields.append(oid_field)
+    count = len(ids)
+    features = []
+    for start in range(0, count, batch_size):
+        batch = ids[start:start + batch_size]
+        if status_callback:
+            status_callback(f"Downloading points {start+1:,}-{min(start+len(batch), count):,} of {count:,}...")
+        features.extend(query_feature_batch_resilient(
+            layer_url, batch, request_fields, precision,
+            status_callback=status_callback, retry_callback=retry_callback))
+        if progress_callback:
+            progress_callback(85.0 * min(1.0, (start + len(batch)) / count))
+
+    if not oid_field:
+        # Without an ID field only the totals can be compared.
+        return features, [None] * max(0, count - len(features))
+
+    def returned_ids(feats):
+        found = set()
+        for f in feats:
+            value = (f.get("attributes") or {}).get(oid_field)
+            if value is not None:
+                found.add(str(value))
+        return found
+
+    seen = returned_ids(features)
+    missing = [i for i in ids if str(i) not in seen]
+    if missing:
+        if status_callback:
+            status_callback(f"{len(missing):,} features were not returned - asking for them once more...")
+        for start in range(0, len(missing), batch_size):
+            batch = missing[start:start + batch_size]
+            try:
+                features.extend(query_feature_batch_resilient(
+                    layer_url, batch, request_fields, precision,
+                    status_callback=status_callback, retry_callback=retry_callback))
+            except RuntimeError:
+                pass   # reported below as still missing
+        seen = returned_ids(features)
+        missing = [i for i in ids if str(i) not in seen]
+    return features, missing
+
+
 def suggest_lod(feature_count):
     """Empirical starting point anchored to proven Nassau and Duval tests."""
     if feature_count <= 0:
@@ -240,12 +306,16 @@ def sanitize_filename(text):
     return text or "PointLayer"
 
 
+# Characters XML 1.0 does not allow (old agency records often contain them).
+_XML_ILLEGAL = re.compile("[\x00-\x08\x0b\x0c\x0e-\x1f\ufffe\uffff]")
+
+
 def xml_text(value):
     if value is None:
         return ""
     if isinstance(value, bool):
         return "true" if value else "false"
-    return str(value)
+    return _XML_ILLEGAL.sub("", str(value))
 
 
 def _png_chunk(kind, data):
@@ -319,6 +389,52 @@ def calculate_bounds(features):
     return min(xs), max(xs), min(ys), max(ys)
 
 
+MIN_REGION_DEG = 0.01  # about 1 km; used only when the points have no extent in a direction
+
+
+def region_bounds(west, east, south, north):
+    """Give the KML Region a non-zero size. With one point, or points that all share a
+    latitude or longitude, the box would have zero area and could never reach the LOD
+    pixel threshold, so the layer would never draw. Normal layers are unchanged."""
+    lat_span, lon_span = north - south, east - west
+    if lat_span > 0 and lon_span > 0:
+        return west, east, south, north
+    target = max(lat_span, lon_span, MIN_REGION_DEG)
+    if lat_span <= 0:
+        mid = (north + south) / 2.0
+        south, north = max(-90.0, mid - target / 2.0), min(90.0, mid + target / 2.0)
+    if lon_span <= 0:
+        mid = (east + west) / 2.0
+        west, east = max(-180.0, mid - target / 2.0), min(180.0, mid + target / 2.0)
+    return west, east, south, north
+
+
+_PNG_SIGNATURE = b"\x89PNG\r\n\x1a\n"
+
+
+def is_png(path):
+    try:
+        with open(path, "rb") as f:
+            return f.read(8) == _PNG_SIGNATURE
+    except OSError:
+        return False
+
+
+def _partial(path):
+    return path.with_name(path.name + ".partial")
+
+
+def _finish(partial, path, ok):
+    """Replace the real file only when writing succeeded; otherwise remove the partial."""
+    if ok:
+        os.replace(partial, path)
+    else:
+        try:
+            partial.unlink()
+        except OSError:
+            pass
+
+
 def write_geojson(path, features, fields, source_url, layer_name):
     out_features = []
     for feature in features:
@@ -340,20 +456,25 @@ def write_geojson(path, features, fields, source_url, layer_name):
         "layer": layer_name,
         "features": out_features,
     }
-    with path.open("w", encoding="utf-8", newline="\n") as f:
-        json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+    partial, ok = _partial(path), False
+    try:
+        with partial.open("w", encoding="utf-8", newline="\n") as f:
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+        ok = True
+    finally:
+        _finish(partial, path, ok)
 
 
 def write_kmz(path, features, fields, aliases, source_url, layer_name,
               lod_pixels, icon_scale, icon_bytes, hide_labels=True):
-    west, east, south, north = calculate_bounds(features)
+    west, east, south, north = region_bounds(*calculate_bounds(features))
     label_scale = "0" if hide_labels else "1"
 
     lines = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         '<kml xmlns="http://www.opengis.net/kml/2.2">',
         '<Document>',
-        f'<name>{escape(layer_name)}</name>',
+        f'<name>{escape(xml_text(layer_name))}</name>',
         '<Style id="point-style">',
         '<IconStyle>',
         f'<scale>{icon_scale:g}</scale>',
@@ -363,7 +484,7 @@ def write_kmz(path, features, fields, aliases, source_url, layer_name,
         f'<LabelStyle><scale>{label_scale}</scale></LabelStyle>',
         '</Style>',
         '<Folder>',
-        f'<name>{escape(layer_name)}</name>',
+        f'<name>{escape(xml_text(layer_name))}</name>',
         '<Region>',
         '<LatLonAltBox>',
         f'<north>{north:.10f}</north><south>{south:.10f}</south>',
@@ -398,8 +519,8 @@ def write_kmz(path, features, fields, aliases, source_url, layer_name,
             alias = aliases.get(field) or field
             value = xml_text(attrs.get(field))
             lines.extend([
-                f'<Data name="{escape(field)}">',
-                f'<displayName>{escape(alias)}</displayName>',
+                f'<Data name="{escape(xml_text(field))}">',
+                f'<displayName>{escape(xml_text(alias))}</displayName>',
                 f'<value>{escape(value)}</value>',
                 '</Data>',
             ])
@@ -412,9 +533,14 @@ def write_kmz(path, features, fields, aliases, source_url, layer_name,
 
     lines.extend(['</Folder>', '</Document>', '</kml>'])
     kml = "\n".join(lines).encode("utf-8")
-    with zipfile.ZipFile(path, "w", compression=zipfile.ZIP_DEFLATED) as z:
-        z.writestr("doc.kml", kml)
-        z.writestr("icons/point.png", icon_bytes)
+    partial, ok = _partial(path), False
+    try:
+        with zipfile.ZipFile(partial, "w", compression=zipfile.ZIP_DEFLATED) as z:
+            z.writestr("doc.kml", kml)
+            z.writestr("icons/point.png", icon_bytes)
+        ok = True
+    finally:
+        _finish(partial, path, ok)
 
 
 class PointLayerApp:
@@ -772,11 +898,26 @@ class PointLayerApp:
         if not output_dir.exists():
             messagebox.showerror(APP_NAME, "Output folder does not exist.")
             return
-        if self.symbol_var.get() == "Custom PNG":
+        if self.symbol_var.get() == "Custom PNG" and self.kmz_var.get():
             custom = Path(self.custom_icon_var.get())
             if not custom.is_file():
                 messagebox.showerror(APP_NAME, "Choose a custom PNG icon first.")
                 return
+            if not is_png(custom):
+                messagebox.showerror(APP_NAME, f"{custom.name} is not a PNG image. Choose a .png icon.")
+                return
+        targets = []
+        if self.kmz_var.get():
+            targets.append(output_dir / f"{base}.kmz")
+        if self.geojson_var.get():
+            targets.append(output_dir / f"{base}.geojson")
+        existing = [t for t in targets if t.exists()]
+        if existing and not messagebox.askyesno(
+                APP_NAME,
+                "Already in " + str(output_dir) + ":\n\n" + "\n".join(t.name for t in existing) +
+                "\n\nReplace?", icon="warning", default="no"):
+            self.set_status("Not built - existing file kept.")
+            return
         self.build_btn.configure(state="disabled")
         self.read_btn.configure(state="disabled")
         self.progress.configure(value=0)
@@ -792,27 +933,19 @@ class PointLayerApp:
             count = len(ids)
             max_record = int(self.meta.get("maxRecordCount") or 1000)
             batch_size = max(1, min(max_record, MAX_BATCH))
-            features = []
+            oid_field = oid_field or self.meta.get("objectIdField") or self.meta.get("objectIdFieldName")
 
             def retry_cb(next_attempt, total, exc):
                 self.set_status(f"Feature request failed ({exc}) — retry {next_attempt} of {total}...")
 
-            for start in range(0, count, batch_size):
-                batch = ids[start:start + batch_size]
-                done_before = len(features)
-                self.set_status(
-                    f"Downloading points {start+1:,}-{min(start+len(batch), count):,} of {count:,}..."
-                )
-                got = query_feature_batch_resilient(
-                    self.layer_url, batch, fields, DEFAULT_PRECISION,
-                    status_callback=self.set_status,
-                    retry_callback=retry_cb,
-                )
-                features.extend(got)
-                pct = 85.0 * min(1.0, (start + len(batch)) / count)
-                self.set_progress(pct)
+            features, missing = download_all_features(
+                self.layer_url, ids, oid_field, fields, batch_size, DEFAULT_PRECISION,
+                status_callback=self.set_status, retry_callback=retry_cb,
+                progress_callback=self.set_progress,
+            )
 
             valid = sum(1 for f in features if extract_point(f) is not None)
+            no_location = len(features) - valid
             if valid == 0:
                 raise ValueError("No valid point geometries were downloaded.")
             layer_name = self.meta.get("name") or base
@@ -838,12 +971,26 @@ class PointLayerApp:
                 written.append(geo_path)
 
             self.set_progress(100)
+            notes = []
+            if missing:
+                shown = ", ".join(str(m) for m in missing[:10] if m is not None)
+                notes.append(
+                    f"WARNING: {len(missing):,} of {count:,} published features were not returned by "
+                    "the service, even after asking again. The layer was written without them." +
+                    (f"\nMissing object IDs: {shown}" + (" ..." if len(missing) > 10 else "") if shown else ""))
+            if no_location:
+                notes.append(f"{no_location:,} records had no location in the service and were skipped.")
             msg = (
-                f"{valid:,} point records written.\n\n" +
+                f"{valid:,} of {count:,} published points written.\n\n" +
+                ("\n\n".join(notes) + "\n\n" if notes else "") +
                 "\n".join(str(p) for p in written)
             )
-            self.set_status(f"Complete — {valid:,} points written.")
-            self.root.after(0, messagebox.showinfo, APP_NAME, msg)
+            if missing:
+                self.set_status(f"Complete with warning — {valid:,} of {count:,} points written; {len(missing):,} not returned by the service.")
+                self.root.after(0, messagebox.showwarning, APP_NAME, msg)
+            else:
+                self.set_status(f"Complete — {valid:,} points written.")
+                self.root.after(0, messagebox.showinfo, APP_NAME, msg)
         except Exception as exc:
             self.set_status("Build failed.")
             self.root.after(0, messagebox.showerror, APP_NAME, str(exc))
@@ -885,6 +1032,19 @@ def run_self_test(output_dir):
     assert root_url.endswith("/FeatureServer") and layer_id is None
     root_url, layer_id = normalize_service_url("https://example.test/arcgis/rest/services/Hydrants/FeatureServer/458")
     assert root_url.endswith("/FeatureServer") and layer_id == 458
+    # 1.4: illegal XML characters removed; zero-area regions widened; PNG check.
+    bad = [{"attributes": {"Type_": "Notes\x0bwith\x1acontrol", "NameofOwner": "A", "FULLADDRESS": "B"},
+            "geometry": {"x": -81.80, "y": 30.50}}]
+    kmz2 = output_dir / "PointLayer_SELF_TEST_control.kmz"
+    write_kmz(kmz2, bad, fields, aliases, "https://example/FeatureServer/0", "Self Test", 12000, 0.5,
+              built_in_icon_bytes("Red dot"), True)
+    import xml.dom.minidom
+    xml.dom.minidom.parseString(zipfile.ZipFile(kmz2).read("doc.kml"))
+    w, e, s_, n = region_bounds(-81.8, -81.8, 30.5, 30.5)
+    assert n > s_ and e > w
+    assert region_bounds(-81.8, -81.7, 30.5, 30.55) == (-81.8, -81.7, 30.5, 30.55)
+    assert is_png(output_dir / "PointLayer_SELF_TEST.kmz") is False
+    assert not list(output_dir.glob("*.partial"))
     print("SELF TEST PASS")
     print(kmz)
     print(geo)

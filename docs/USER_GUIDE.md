@@ -1,4 +1,4 @@
-# PointLayer 1.3 User Guide
+# PointLayer 1.4 User Guide
 
 ## Purpose
 
@@ -122,8 +122,11 @@ PointLayer:
 3. automatically splits a failing batch into smaller batches when appropriate
 4. requests geometry in EPSG:4326
 5. keeps only selected attributes
-6. calculates the downloaded point extent
-7. writes the selected output format(s)
+6. checks that every listed point was returned, asks once more for any missing, and warns if some are still missing
+7. calculates the downloaded point extent
+8. writes the selected output format(s), asking first if a file of that name already exists
+
+The completion message reads `N of M published points written`. It also reports any points the service did not return, and any records published without a location.
 
 ## Open in ArcGIS Earth
 
@@ -173,7 +176,15 @@ Decrease the LOD cutoff.
 
 Rebuild and select fewer fields.
 
-PointLayer 1.3 does not inject a visible Source row into KMZ popups.
+PointLayer (since 1.3) does not inject a visible Source row into KMZ popups.
+
+### "WARNING: ... published features were not returned by the service"
+
+The service listed those points but did not send them, even when asked twice. The layer was written without them. Try again later, and check with the publisher if it persists.
+
+### A one-point or very small layer does not appear
+
+Lower the LOD cutoff. The layer's visibility box is small, so it reaches a high pixel threshold only when you are zoomed in very close.
 
 ### A "Latitude" or "Longitude" field looks wrong
 

@@ -1,5 +1,14 @@
 # Changelog
 
+## PointLayer 1.4
+- Every object ID the service lists is checked off; missing features are requested once more, and any still missing are reported (count and IDs) while the layer is still written.
+- Characters that are illegal in XML are removed from KML text, so one bad record cannot make the KMZ unreadable.
+- A one-point layer, or points on a single latitude or longitude, gets a KML Region with a real extent so it can draw.
+- Records without a location are counted in the completion message.
+- Asks before replacing an existing KMZ/GeoJSON; files are written as `.partial` first.
+- A custom icon must be a real PNG.
+- Output for normal services is identical to 1.3. Details: [docs/POINTLAYER_V1.4_CHANGES.md](docs/POINTLAYER_V1.4_CHANGES.md).
+
 ## PointLayer 1.3
 - Removed the automatically injected `Source` row from KMZ popups.
 - KMZ popup content now follows the user's selected fields only.

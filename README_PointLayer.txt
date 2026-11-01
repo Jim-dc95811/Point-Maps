@@ -1,4 +1,4 @@
-PointLayer 1.3
+PointLayer 1.4
 ==============
 
 PURPOSE
@@ -51,6 +51,17 @@ The program requests the complete Object ID list first, then retrieves the point
 safe batches using outSR=4326. It does not crop to the current screen or require a
 manual bounding box. The final KML Region is calculated from the downloaded points.
 
+COMPLETENESS CHECK (1.4)
+------------------------
+Every point the service lists is checked off as it arrives. If the service does not
+return some of them, PointLayer asks for those once more. If any are still missing,
+the layer is written anyway and a warning says how many of the published points were
+not returned, with their object IDs. Records that the service publishes without a
+location are counted and reported, not dropped silently.
+
+If the output file already exists, PointLayer asks before replacing it. If writing
+fails part-way, the previous file is left untouched.
+
 ARC GIS EARTH / LOD
 -------------------
 LOD is intentionally adjustable because point density varies dramatically.
@@ -72,7 +83,11 @@ KMZ:
 - One complete point layer.
 - User-selected attributes remain attached to each point.
 - Built-in Red dot, Blue dot, Yellow dot, and Red H (hydrant) icons.
-- Custom PNG supported.
+- Custom PNG supported (the file must be a real PNG).
+- Invisible control characters in the source data are removed, so one bad record
+  cannot make the KMZ unreadable.
+- A layer of one point, or of points in a straight east-west or north-south line,
+  gets a KML Region with a small real extent so it can still appear.
 - Labels hidden by default.
 - LOD controls when the layer becomes visible while the layer itself remains checked.
 

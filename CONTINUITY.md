@@ -14,11 +14,11 @@ Core workflow:
 
 ## Current release
 
-**PointLayer 1.3**
+**PointLayer 1.4** (live-accepted 2026-11-01)
 
 Current release package:
 
-`releases/PointLayer_v1.3.zip`
+`releases/PointLayer_v1.4.zip` (previous: `releases/PointLayer_v1.3.zip`, kept for existing links)
 
 Root source files:
 
@@ -83,6 +83,19 @@ Removed the automatically injected visible `Source` row from KMZ popups.
 The KMZ popup now contains only the fields the user selected.
 
 No other functional change was made.
+
+### 1.4
+
+Hardening release; normal output is byte-identical to 1.3 (approved by Jim as one release, fixes 1-6, "write and warn"):
+
+- completeness check: the OID field is always requested (never written); missing IDs are re-requested once; any still missing are reported by count and ID while the layer is still written
+- XML-illegal control characters stripped from KML text
+- zero-area KML Region (one point / one latitude / one longitude) widened to the other span or 0.01 degrees
+- records without geometry counted in the completion message
+- overwrite prompt and `.partial` writes
+- custom icon checked for the PNG signature
+
+Internet requests still honor the system proxy on purpose (public services may need it). See `docs/POINTLAYER_V1.4_CHANGES.md`.
 
 ## Proven operational behavior
 

@@ -20,6 +20,8 @@ It queries `where=1=1`, requests `returnIdsOnly=true`, then downloads the return
 
 When a transient batch request fails, the program can split the batch recursively into smaller requests.
 
+Since 1.4 the object-ID field is always included in the request (only the chosen fields are written), so every returned feature is matched against the ID list. Missing IDs are requested once more; any still missing are reported. Without an object-ID field, the totals are compared.
+
 ## Coordinate handling
 
 Feature requests specify `outSR=4326`.
@@ -43,7 +45,7 @@ The first non-empty selected field becomes the placemark name/popup title. Label
 
 ## KML Region / LOD
 
-A folder-level KML `Region` is calculated from the downloaded feature bounds.
+A folder-level KML `Region` is calculated from the downloaded feature bounds. If those bounds have no extent in one direction (a single point, or all points on one latitude or longitude), 1.4 widens that direction to the other span, or to 0.01 degrees, so the Region has an area that can reach the LOD threshold. KML text is stripped of XML-illegal control characters.
 
 `minLodPixels` is user-adjustable and `maxLodPixels` remains `-1`.
 
@@ -75,6 +77,6 @@ KML/XML is highly repetitive and compresses extremely well in the KMZ ZIP contai
 
 ## Scope
 
-PointLayer 1.3 intentionally supports **point layers only**.
+PointLayer intentionally supports **point layers only**.
 
 It does not currently handle polygons, polylines, multipoints, rasters, local geodatabases, or authenticated services. Those would be separate design decisions rather than silent expansion of PointLayer.

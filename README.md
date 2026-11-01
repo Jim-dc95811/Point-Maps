@@ -2,7 +2,7 @@
 
 ## Download the tool
 
-### **⬇️ [DOWNLOAD POINTLAYER v1.3](releases/PointLayer_v1.3.zip)**
+### **⬇️ [DOWNLOAD POINTLAYER v1.4](releases/PointLayer_v1.4.zip)**
 Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for ArcGIS Earth.
 
 > **ArcGIS Earth Unlocked:** PointLayer is the public point-data ingestion component of the broader project family. See the [master system map](https://github.com/Jim-dc95811/ArcGIS-Earth-Unlocked) and the [ArcGIS Earth Object Factory](https://github.com/Jim-dc95811/ArcGIS-Earth-Object-Factory).
@@ -11,7 +11,7 @@ Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for 
 
 > If an agency publishes useful point data through a public ArcGIS FeatureServer or MapServer, ordinary users should be able to turn that layer into a clean offline ArcGIS Earth overlay without becoming GIS specialists.
 
-The current tool is **PointLayer 1.3**.
+The current tool is **PointLayer 1.4**.
 
 ![Nassau County fire hydrant in ArcGIS Earth](assets/Nassau_County_Fire_Hydrant.jpg)
 
@@ -55,7 +55,7 @@ It uses Python 3 standard-library modules plus Tkinter.
 
 ## Release details
 
-**Current release: PointLayer 1.3**
+**Current release: PointLayer 1.4** (2026-11-01) - a hardening release: every published point is checked off and any the service fails to return are reported; one bad record can no longer spoil the KMZ; single-point layers can appear; existing files are protected. Normal output is identical to 1.3. See [docs/POINTLAYER_V1.4_CHANGES.md](docs/POINTLAYER_V1.4_CHANGES.md).
 
 The runnable/source files are also at the repository root:
 
@@ -167,6 +167,7 @@ See **[docs/SOURCE_EXAMPLES.md](docs/SOURCE_EXAMPLES.md)**.
 - [Field Tests](docs/FIELD_TESTS.md)
 - [Public Source Examples](docs/SOURCE_EXAMPLES.md)
 - [Project Notes](docs/PROJECT_NOTES.md)
+- [1.4 change document](docs/POINTLAYER_V1.4_CHANGES.md)
 - [Changelog](CHANGELOG.md)
 - **[Continuity / Current Project State](CONTINUITY.md)**
 
@@ -179,7 +180,7 @@ PointLayer uses a deliberate maintenance rule:
 - do not add unrelated improvements during that change
 - every code modification gets a new version number
 
-The current known-good release remains **PointLayer 1.3**.
+The current known-good release is **PointLayer 1.4**. The previous 1.3 package remains at `releases/PointLayer_v1.3.zip`.
 
 ## Data responsibility
 
