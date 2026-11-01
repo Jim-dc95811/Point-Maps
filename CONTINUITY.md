@@ -1,6 +1,8 @@
 # Point Maps - Continuity
 
-Last consolidated: October 24, 2026
+Last consolidated: October 24, 2026 (dated update 2026-11-01 below)
+
+**2026-11-01 update:** the front page follows the family-wide layout (download link, user manual link, one line, screenshot that opens the video). Screenshot `assets/pointlayer_hydrants_callahan_arcgis_earth.jpg` (Nassau hydrants around Callahan) opens video `5Wn14qlC7n4`. Three corrupt assets were removed. `docs/USER_GUIDE.md` was corrected against the 1.4 code and `docs/PointLayer_User_Guide.pdf` (previously a truncated, unreadable file) is now generated from it.
 
 ## Project purpose
 
