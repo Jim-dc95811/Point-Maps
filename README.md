@@ -7,9 +7,9 @@
 
 Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for ArcGIS Earth.
 
-![Nassau County fire hydrants in ArcGIS Earth around Callahan, Florida, with one hydrant's popup open showing owner, type and address](assets/pointlayer_hydrants_callahan_arcgis_earth.jpg)
+[![Nassau County fire hydrants in ArcGIS Earth around Callahan, Florida, with one hydrant's popup open showing owner, type and address](assets/pointlayer_hydrants_callahan_arcgis_earth.jpg)](https://www.youtube.com/watch?v=5Wn14qlC7n4)
 
-*Nassau County hydrants made with PointLayer, offline in ArcGIS Earth around Callahan, Florida. Click any hydrant to see its published details.*
+*Nassau County hydrants made with PointLayer, offline in ArcGIS Earth around Callahan, Florida. Click any hydrant to see its published details. ▶️ [Watch the video](https://www.youtube.com/watch?v=5Wn14qlC7n4) (YouTube).*
 
 > **ArcGIS Earth Unlocked:** PointLayer is the public point-data ingestion component of the broader project family. See the [master system map](https://github.com/Jim-dc95811/ArcGIS-Earth-Unlocked) and the [ArcGIS Earth Object Factory](https://github.com/Jim-dc95811/ArcGIS-Earth-Object-Factory).
 
