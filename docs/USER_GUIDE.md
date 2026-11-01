@@ -1,5 +1,7 @@
 # PointLayer 1.4 User Guide
 
+A printable copy of this guide is available as [PointLayer_User_Guide.pdf](PointLayer_User_Guide.pdf).
+
 ## Purpose
 
 PointLayer converts a public/queryable ArcGIS point Feature Layer into one complete offline point overlay for ArcGIS Earth.
@@ -17,7 +19,11 @@ No QGIS, ArcGIS Pro, ArcPy, GDAL, GeoPandas, or Python `requests` package is req
 
 ## Start the program
 
-Run `PointLayer.bat`.
+1. Download [`PointLayer_v1.4.zip`](../releases/PointLayer_v1.4.zip) and unzip it into a folder of its own (the zip holds the files directly, not a subfolder).
+2. Install Python 3 from python.org if it is not already installed. The python.org installer includes Tkinter.
+3. Double-click `PointLayer.bat`. It uses the `py` launcher if present, otherwise `python`.
+
+The window title shows **PointLayer 1.4**.
 
 ## Step 1 - Paste a public ArcGIS service
 
@@ -30,7 +36,9 @@ PointLayer accepts either:
 
 Click **Read Service**.
 
-If the root has one queryable point layer, it is selected automatically. If several point layers are available, PointLayer presents a chooser.
+If the root has one queryable point layer, it is selected automatically. If several point layers are available, PointLayer presents a chooser: pick the layer and click **Use Selected Layer**.
+
+When the layer has been read, the status line reports the number of points and a suggested LOD cutoff (see Step 4), and the base name is filled in from the layer name.
 
 ## Step 2 - Choose fields
 
@@ -41,7 +49,7 @@ Controls:
 - **Recommended** - selects fields whose names/aliases look operationally useful.
 - **All** - selects all fields.
 - **None** - clears the selection.
-- Click an individual row to toggle it.
+- Click an individual row to toggle it. A check mark in the **Keep** column means the field will be written.
 
 The finished KMZ popup contains only the fields you select.
 
@@ -51,13 +59,14 @@ Do not assume a field named Latitude or Longitude is actually decimal geographic
 
 ## Step 3 - Choose output
 
-Choose the output folder and base name.
+Choose the output folder (default: your Desktop; the folder must already exist) and the base name (filled in from the layer name; you can change it).
 
-Output choices:
+Output choices (tick one or both):
 
-- **KMZ**
+- **KMZ** (ticked by default)
 - **GeoJSON**
-- both
+
+If a file with that name already exists, PointLayer asks before replacing it.
 
 ### KMZ
 
@@ -77,22 +86,22 @@ GeoJSON preserves the selected attributes and point geometry but does not carry 
 
 ## Step 4 - Choose KMZ style
 
-Built-in symbols:
+Built-in symbols (default **Red dot**):
 
 - Red dot
 - Blue dot
 - Yellow dot
 - Red H (hydrant)
 
-A custom PNG can also be supplied.
+To use your own icon, choose **Custom PNG** in the Symbol list, then click **Browse PNG**. The file must be a real PNG image; a renamed JPEG is rejected. The icon is embedded in the KMZ, so the layer stays self-contained offline.
 
 ### Scale
 
-`0.50` was used successfully for the hydrant H symbol.
+Default `0.50`, which was used successfully for the hydrant H symbol. Larger numbers draw bigger icons.
 
 ### Hide labels
 
-Checked means the symbol is visible but text is not drawn beside every point.
+Checked by default. Checked means the symbol is visible but text is not drawn beside every point.
 
 Click the point to see its popup information.
 
@@ -104,7 +113,7 @@ LOD controls when ArcGIS Earth starts drawing the layer.
 
 A high-density layer should not necessarily appear while the user is looking at an entire county. Keeping the layer enabled but invisible until a useful zoom level prevents a wall of overlapping symbols.
 
-Proven starting references:
+After Read Service, PointLayer fills in a suggested cutoff based on the number of points. The suggestion comes from these proven starting references and can be changed:
 
 - Nassau County hydrants: 3,250 published point features -> LOD 12,000
 - Duval / JFRD-JEA hydrants: 30,688 published point features -> LOD 30,000
@@ -113,7 +122,7 @@ Raise LOD if the symbols appear too early. Lower it if they appear too late.
 
 ## Step 5 - BUILD
 
-Click **BUILD**.
+Click **BUILD**. It becomes available once a service has been read.
 
 PointLayer:
 
@@ -152,7 +161,7 @@ No hydrants were removed to achieve the smaller file.
 
 ## Troubleshooting
 
-### "Requested layer 0 was not found"
+### The service says layer 0 does not exist
 
 Do not add `/0` just because many ArcGIS examples use layer zero.
 
@@ -162,7 +171,7 @@ Nassau's hydrant layer, for example, is layer **458**.
 
 ### BUILD button is off-screen
 
-PointLayer 1.2 and later use a scrollable main area with BUILD/status/progress fixed at the bottom.
+Scroll the upper part of the window. BUILD, the status line and the progress bar stay fixed at the bottom.
 
 ### Too many symbols appear at once
 
@@ -174,9 +183,15 @@ Decrease the LOD cutoff.
 
 ### Popup is cluttered
 
-Rebuild and select fewer fields.
+Rebuild and select fewer fields. The popup shows only the fields you selected.
 
-PointLayer (since 1.3) does not inject a visible Source row into KMZ popups.
+### "Output folder does not exist"
+
+PointLayer does not create folders. Choose an existing folder with **Browse**.
+
+### "... is not a PNG image"
+
+The custom icon must be a PNG. Convert it, or pick one of the built-in symbols.
 
 ### "WARNING: ... published features were not returned by the service"
 
