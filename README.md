@@ -3,6 +3,8 @@
 ## Download the tool
 
 ### **⬇️ [DOWNLOAD POINTLAYER v1.4](releases/PointLayer_v1.4.zip)**
+**📖 [User manual](docs/USER_GUIDE.md)**
+
 Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for ArcGIS Earth.
 
 > **ArcGIS Earth Unlocked:** PointLayer is the public point-data ingestion component of the broader project family. See the [master system map](https://github.com/Jim-dc95811/ArcGIS-Earth-Unlocked) and the [ArcGIS Earth Object Factory](https://github.com/Jim-dc95811/ArcGIS-Earth-Object-Factory).
