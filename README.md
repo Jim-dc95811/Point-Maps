@@ -1,8 +1,12 @@
 # Point Maps
 
-## Download the tool
+## Get everything you need
 
-### **⬇️ [DOWNLOAD POINTLAYER v1.4](releases/PointLayer_v1.4.zip)**
+**1. ⬇️ [ArcGIS Earth](https://www.esri.com/en-us/arcgis/products/arcgis-earth/downloads)** - free 3D globe from Esri (Windows desktop version).
+
+**2. ⬇️ [Python 3](https://www.python.org/downloads/windows/)** - free; install with the default options.
+
+### **⬇️ [3. DOWNLOAD POINTLAYER v1.4](releases/PointLayer_v1.4.zip)**
 **📖 [User manual](docs/USER_GUIDE.md)**
 
 Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for ArcGIS Earth.
