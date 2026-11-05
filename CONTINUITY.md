@@ -1,5 +1,7 @@
 # Point Maps - Continuity
 
+**2026-11-04 update (Claude):** 'What's in the zip' sheet `assets/pointlayer_whats_in_the_zip*.png` - every file in the download explained in plain words (Jim's idea), linked under the download heading on the README and the front page and shown in the user manual (PDF rebuilt). Made by `tools/graphics/make_zip_sheets.py` in ArcGIS-Earth-Unlocked; **if the zip contents change, update its card list there and re-render.**
+
 Last consolidated: October 24, 2026 (dated update 2026-11-01 below)
 
 **2026-11-01 update:** the front page follows the family-wide layout (download link, user manual link, one line, screenshot that opens the video). Screenshot `assets/pointlayer_hydrants_callahan_arcgis_earth.jpg` (Nassau hydrants around Callahan) opens video `5Wn14qlC7n4`. Three corrupt assets were removed. `docs/USER_GUIDE.md` was corrected against the 1.4 code and `docs/PointLayer_User_Guide.pdf` (previously a truncated, unreadable file) is now generated from it.
