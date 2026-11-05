@@ -25,6 +25,10 @@ No QGIS, ArcGIS Pro, ArcPy, GDAL, GeoPandas, or Python `requests` package is req
 
 The window title shows **PointLayer 1.4**.
 
+## What's in the zip
+
+![What's in the PointLayer folder: PointLayer.bat opens it, PointLayer.py is the program, README and TEST_SOURCES text files, and the KMZ or GeoJSON it makes](../assets/pointlayer_whats_in_the_zip.png)
+
 ## Step 1 - Paste a public ArcGIS service
 
 PointLayer accepts either:

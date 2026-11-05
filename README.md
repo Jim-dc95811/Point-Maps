@@ -13,6 +13,7 @@
 
 ### **⬇️ [3. DOWNLOAD POINTLAYER v1.4](releases/PointLayer_v1.4.zip)**
 **📖 [User manual](docs/USER_GUIDE.md)**
+**🗂️ [What's in the zip - every file explained](assets/pointlayer_whats_in_the_zip_full.png)**
 
 Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for ArcGIS Earth.
 
