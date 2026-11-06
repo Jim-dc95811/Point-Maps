@@ -194,6 +194,12 @@ PointLayer uses a deliberate maintenance rule:
 
 The current known-good release is **PointLayer 1.4**. The previous 1.3 package remains at `releases/PointLayer_v1.3.zip`.
 
+## Human-AI engineering collaboration
+
+PointLayer was conceived, directed and field-tested by **Jim Gaddy**, working with **OpenAI's ChatGPT** and **Anthropic's Claude** as AI coding and documentation partners. Jim supplied the public-safety use case, the real county services (Nassau and Duval hydrants) and the ArcGIS Earth acceptance tests and LOD choices. ChatGPT helped build PointLayer 1.0-1.3. Claude built the 1.4 hardening release (completeness checks, safe writes, clean XML) with its mock-service test rig, the user guide and its PDF, and the 'What's in the zip' sheet.
+
+This acknowledgment is not a claim of OpenAI or Anthropic sponsorship or endorsement.
+
 ## Data responsibility
 
 PointLayer downloads what the source service publishes.
