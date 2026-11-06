@@ -11,7 +11,7 @@
 > 2. **Windows security warning:** Windows may warn about any program downloaded from the internet. Click **More info > Run anyway** (blue "Windows protected your PC" screen) or **Run**. To avoid the warning, right-click the zip > **Properties** > tick **Unblock** > **OK** before extracting.
 > 3. **Installing Python:** if the installer shows **"Add python.exe to PATH"**, tick it.
 
-### **⬇️ [3. DOWNLOAD POINTLAYER v1.4](releases/PointLayer_v1.4.zip)**
+### **⬇️ [3. DOWNLOAD POINTLAYER v1.4.1](releases/PointLayer_v1.4.1.zip)**
 **📖 [User manual](docs/USER_GUIDE.md)**
 **🗂️ [What's in the zip - every file explained](assets/pointlayer_whats_in_the_zip_full.png)**
 
@@ -40,7 +40,7 @@ flowchart LR
 
 ## Quick start
 
-1. Run `PointLayer.bat`.
+1. Extract the zip and double-click `PointLayer.bat` (the other item, `System Files`, holds the program - leave it alone).
 2. Paste an ArcGIS `FeatureServer` or `MapServer` service root, or a specific layer URL.
 3. Click **Read Service**.
 4. If the service contains several point layers, choose the one you want.
@@ -67,14 +67,16 @@ It uses Python 3 standard-library modules plus Tkinter.
 
 ## Release details
 
-**Current release: PointLayer 1.4** (2026-11-01) - a hardening release: every published point is checked off and any the service fails to return are reported; one bad record can no longer spoil the KMZ; single-point layers can appear; existing files are protected. Normal output is identical to 1.3. See [docs/POINTLAYER_V1.4_CHANGES.md](docs/POINTLAYER_V1.4_CHANGES.md).
+**Current release: PointLayer 1.4.1** (2026-11-06) - one obvious file: the zip now holds a `PointLayer_v1.4.1` folder with `PointLayer.bat` and `System Files` (the program). The program is the 1.4 program, unchanged. `PointLayer_v1.4.1.zip` SHA-256 `89c9b5f8b489b8711432fe142988b40f766ae72548ec55aea30703251d5d86fd`.
 
-The runnable/source files are also at the repository root:
+**PointLayer 1.4** (2026-11-01) - a hardening release: every published point is checked off and any the service fails to return are reported; one bad record can no longer spoil the KMZ; single-point layers can appear; existing files are protected. Normal output is identical to 1.3. See [docs/POINTLAYER_V1.4_CHANGES.md](docs/POINTLAYER_V1.4_CHANGES.md).
 
-- `PointLayer.py`
+The source files are also in the repository, laid out like the download:
+
 - `PointLayer.bat`
-- `README_PointLayer.txt`
-- `TEST_SOURCES.txt`
+- `System Files/PointLayer.py`
+
+Plus two notes that are not in the download: `README_PointLayer.txt` (quick notes) and `TEST_SOURCES.txt` (the services PointLayer was tested with).
 
 GitHub users can also use **Code -> Download ZIP** to download the repository as one package.
 
@@ -192,7 +194,7 @@ PointLayer uses a deliberate maintenance rule:
 - do not add unrelated improvements during that change
 - every code modification gets a new version number
 
-The current known-good release is **PointLayer 1.4**. The previous 1.3 package remains at `releases/PointLayer_v1.3.zip`.
+The current known-good release is **PointLayer 1.4.1** (the 1.4 program in the one-obvious-file layout). The 1.4 and 1.3 packages remain in `releases/`.
 
 ## Human-AI engineering collaboration
 

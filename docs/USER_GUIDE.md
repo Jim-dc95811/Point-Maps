@@ -1,4 +1,4 @@
-# PointLayer 1.4 User Guide
+# PointLayer 1.4.1 User Guide
 
 A printable copy of this guide is available as [PointLayer_User_Guide.pdf](PointLayer_User_Guide.pdf).
 
@@ -19,15 +19,15 @@ No QGIS, ArcGIS Pro, ArcPy, GDAL, GeoPandas, or Python `requests` package is req
 
 ## Start the program
 
-1. Download [`PointLayer_v1.4.zip`](../releases/PointLayer_v1.4.zip) and unzip it into a folder of its own (the zip holds the files directly, not a subfolder).
+1. Download [`PointLayer_v1.4.1.zip`](../releases/PointLayer_v1.4.1.zip) and extract it. You get a `PointLayer_v1.4.1` folder holding just `PointLayer.bat` and `System Files`.
 2. Install Python 3 from python.org if it is not already installed. The python.org installer includes Tkinter.
-3. Double-click `PointLayer.bat`. It uses the `py` launcher if present, otherwise `python`.
+3. Double-click `PointLayer.bat`. It uses the `py` launcher if present, otherwise `python`. Leave `System Files` alone - it holds the program.
 
-The window title shows **PointLayer 1.4**.
+The window title shows **PointLayer 1.4** (1.4.1 is the 1.4 program in a tidier folder).
 
 ## What's in the zip
 
-![What's in the PointLayer folder: PointLayer.bat opens it, PointLayer.py is the program, README and TEST_SOURCES text files, and the KMZ or GeoJSON it makes](../assets/pointlayer_whats_in_the_zip.png)
+![What's in the PointLayer folder: PointLayer.bat opens it, System Files holds the program, and the KMZ or GeoJSON it makes](../assets/pointlayer_whats_in_the_zip.png)
 
 ## Step 1 - Paste a public ArcGIS service
 

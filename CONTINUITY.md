@@ -18,18 +18,17 @@ Core workflow:
 
 ## Current release
 
-**PointLayer 1.4** (live-accepted 2026-11-01)
+**PointLayer 1.4.1** (2026-11-06; launcher/layout only - Jim's one-obvious-file rule; program = live-accepted 1.4, `d09a4fae...`)
 
 Current release package:
 
-`releases/PointLayer_v1.4.zip` (previous: `releases/PointLayer_v1.3.zip`, kept for existing links)
+`releases/PointLayer_v1.4.1.zip` = `PointLayer_v1.4.1/PointLayer.bat` + `System Files/PointLayer.py` (previous: `releases/PointLayer_v1.4.zip` and `_v1.3.zip`, kept for existing links)
 
-Root source files:
+Repository files:
 
-- `PointLayer.py`
-- `PointLayer.bat`
-- `README_PointLayer.txt`
-- `TEST_SOURCES.txt`
+- `PointLayer.bat` (runs `System Files\PointLayer.py`; cwd = the top folder, as before)
+- `System Files/PointLayer.py`
+- `README_PointLayer.txt`, `TEST_SOURCES.txt` (notes; not in the download since 1.4.1)
 
 ## Strict modification rule
 

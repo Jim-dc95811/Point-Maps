@@ -1,5 +1,8 @@
 # Changelog
 
+## PointLayer 1.4.1 (2026-11-06)
+- One obvious file: the zip holds a `PointLayer_v1.4.1` folder with `PointLayer.bat` and `System Files\PointLayer.py` (Jim's packaging rule). `README_PointLayer.txt` and `TEST_SOURCES.txt` are no longer in the download (they stay in the repository). Program unchanged (1.4).
+
 ## PointLayer 1.4
 - Every object ID the service lists is checked off; missing features are requested once more, and any still missing are reported (count and IDs) while the layer is still written.
 - Characters that are illegal in XML are removed from KML text, so one bad record cannot make the KMZ unreadable.
