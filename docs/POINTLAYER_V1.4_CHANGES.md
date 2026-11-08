@@ -2,7 +2,7 @@
 
 **Released:** 2026-11-01
 **Type:** hardening release. Completeness, file safety and data robustness.
-**Download:** [`releases/PointLayer_v1.4.zip`](../releases/PointLayer_v1.4.zip)
+**Download:** [`archive/PointLayer_v1.4.zip`](../archive/PointLayer_v1.4.zip)
 
 **For normal services the output is unchanged.** Service discovery, the layer chooser, field selection, batching and batch splitting, the LOD suggestion, icons, `outSR=4326` geometry, and the KMZ and GeoJSON layout are identical to 1.3. For an ordinary layer, 1.4 writes the same KMZ contents and the same GeoJSON as 1.3.
 
@@ -86,4 +86,4 @@ The window title and package README show 1.4. The built-in `--self-test` gained 
 | `PointLayer_v1.4.zip` | `1987c1ef7e00b7a4ecb1ada41b46a17d29c78c05a5dcd621916aa77af4dce3f6` |
 | `PointLayer.py` 1.3 (previous) | `7ad56e5083e170096eff7151d2c5802ea58509b69f46b62f8fa94055ae4039b4` |
 
-`PointLayer.bat` is unchanged. `releases/PointLayer_v1.3.zip` stays in the repository so existing links keep working.
+`PointLayer.bat` is unchanged. `archive/PointLayer_v1.3.zip` stays in the repository so existing links keep working.

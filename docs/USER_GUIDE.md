@@ -1,4 +1,4 @@
-# PointLayer 1.4.2 User Guide
+# PointLayer 2.0 User Guide
 
 <!-- install-blurb:start -->
 > ### Installing PointLayer - read this first
@@ -33,11 +33,11 @@ No QGIS, ArcGIS Pro, ArcPy, GDAL, GeoPandas, or Python `requests` package is req
 
 ## Start the program
 
-1. Download [`PointLayer_v1.4.2.zip`](../releases/PointLayer_v1.4.2.zip) and extract it. You get a `PointLayer_v1.4.2` folder holding just `PointLayer.bat`, this guide as a PDF (`PointLayer_User_Guide.pdf`) and `System Files`.
+1. Download [`PointLayer_v2.0.zip`](../releases/PointLayer_v2.0.zip) and extract it. You get a `PointLayer_v2.0` folder holding just `PointLayer.bat`, this guide as a PDF (`PointLayer_User_Guide.pdf`) and `System Files`.
 2. Python 3: nothing to install by hand. Since this version the .bat does it for you: if Python is missing it asks **Install Python now? [Y/N]** - answer **Y** (installs just for you, no admin; on an older PC it can take several minutes - don't close the window).
 3. Double-click `PointLayer.bat`. It uses the `py` launcher if present, otherwise `python`. Leave `System Files` alone - it holds the program.
 
-The window title shows **PointLayer 1.4** (1.4.1 is the 1.4 program in a tidier folder).
+The window title shows **PointLayer 2.0** (the 1.4 program; the whole family moved to 2.0 on 8 Nov 2026).
 
 ## What's in the zip
 

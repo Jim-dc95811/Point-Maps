@@ -29,7 +29,7 @@ from tkinter import filedialog, messagebox, ttk
 from xml.sax.saxutils import escape
 
 APP_NAME = "PointLayer"
-VERSION = "1.4"
+VERSION = "2.0"   # 2.0 Reference (2026-11-08): the whole ArcGIS Earth Unlocked family moved to 2.0 as one reference point - program = 1.4, only this text changed
 TIMEOUT = 90
 RETRIES = 3
 DEFAULT_PRECISION = 7

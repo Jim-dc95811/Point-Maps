@@ -1,5 +1,7 @@
 # Point Maps - Continuity
 
+**2026-11-08 (Claude) - 2.0 Reference:** Jim moved the whole family to 2.0. `releases/PointLayer_v2.0.zip`; program = 1.4 with only `VERSION = "2.0"` changed. Older zips in `archive/`. Tag `v2.0-reference`.
+
 **2026-11-04 update (Claude):** 'What's in the zip' sheet `assets/pointlayer_whats_in_the_zip*.png` - every file in the download explained in plain words (Jim's idea), linked under the download heading on the README and the front page and shown in the user manual (PDF rebuilt). Made by `tools/graphics/make_zip_sheets.py` in ArcGIS-Earth-Unlocked; **if the zip contents change, update its card list there and re-render.**
 
 Last consolidated: October 24, 2026 (dated update 2026-11-01 below)
@@ -22,7 +24,7 @@ Core workflow:
 
 Current release package:
 
-`releases/PointLayer_v1.4.1.zip` = `PointLayer_v1.4.1/PointLayer.bat` + `System Files/PointLayer.py` (previous: `releases/PointLayer_v1.4.zip` and `_v1.3.zip`, kept for existing links)
+`archive/PointLayer_v1.4.1.zip` = `PointLayer_v1.4.1/PointLayer.bat` + `System Files/PointLayer.py` (previous: `archive/PointLayer_v1.4.zip` and `_v1.3.zip`, kept for existing links)
 
 Repository files:
 

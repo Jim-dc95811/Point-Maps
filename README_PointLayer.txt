@@ -1,4 +1,4 @@
-PointLayer 1.4
+PointLayer 2.0 (program 1.4)
 ==============
 
 PURPOSE

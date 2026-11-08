@@ -1,7 +1,7 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-title PointLayer 1.4.2
+title PointLayer 2.0
 echo Starting Ready to Fly - on an older PC this first step can take a few minutes, please wait...
 echo (Windows Defender may check the files first and slow the PC. That is normal - do not close this window.)
 powershell -NoProfile -ExecutionPolicy Bypass -File "%~dp0System Files\Ready_To_Fly.ps1" -Folder "%~dp0System Files" -Tool "PointLayer" -NeedTk

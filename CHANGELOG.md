@@ -1,5 +1,10 @@
 # Changelog
 
+
+## PointLayer 2.0 - the 2.0 Reference (2026-11-08)
+
+- The whole ArcGIS Earth Unlocked family moved to 2.0 as one reference point (Jim). Program = 1.4 with only the version text changed (diff-checked). Zip `releases/PointLayer_v2.0.zip`; older zips moved to `archive/`.
+
 ## PointLayer 1.4.2 (2026-11-08)
 - Ready to Fly: `PointLayer.bat` - the launcher now gets the PC ready first: it finds Python or installs it for you (just for you, no admin - answer **Y**), then starts the tool. New file `System Files\Ready_To_Fly.ps1` (log: `System Files\Ready_To_Fly_log.txt`). Program byte-identical to the previous release. Live-tested by Jim 2026-11-08.
 
