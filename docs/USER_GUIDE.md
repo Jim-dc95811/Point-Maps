@@ -19,8 +19,8 @@ No QGIS, ArcGIS Pro, ArcPy, GDAL, GeoPandas, or Python `requests` package is req
 
 ## Start the program
 
-1. Download [`PointLayer_v1.4.1.zip`](../releases/PointLayer_v1.4.1.zip) and extract it. You get a `PointLayer_v1.4.1` folder holding just `PointLayer.bat` and `System Files`.
-2. Install Python 3 from python.org if it is not already installed. The python.org installer includes Tkinter.
+1. Download [`PointLayer_v1.4.2.zip`](../releases/PointLayer_v1.4.2.zip) and extract it. You get a `PointLayer_v1.4.2` folder holding just `PointLayer.bat` and `System Files`.
+2. Python 3: nothing to install by hand. Since this version the .bat does it for you: if Python is missing it asks **Install Python now? [Y/N]** - answer **Y** (installs just for you, no admin; on an older PC it can take several minutes - don't close the window).
 3. Double-click `PointLayer.bat`. It uses the `py` launcher if present, otherwise `python`. Leave `System Files` alone - it holds the program.
 
 The window title shows **PointLayer 1.4** (1.4.1 is the 1.4 program in a tidier folder).

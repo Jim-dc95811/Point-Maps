@@ -13,9 +13,10 @@
 > 2. **Windows security warning:** Windows may warn about any program downloaded from the internet. Click **More info > Run anyway** (blue "Windows protected your PC" screen) or **Run**. To avoid the warning, right-click the zip > **Properties** > tick **Unblock** > **OK** before extracting.
 > 3. **Installing Python:** if the installer shows **"Add python.exe to PATH"**, tick it.
 
-### **⬇️ [3. DOWNLOAD POINTLAYER v1.4.1](releases/PointLayer_v1.4.1.zip)**
+### **⬇️ [3. DOWNLOAD POINTLAYER v1.4.2](releases/PointLayer_v1.4.2.zip)**
 **📖 [User manual](docs/USER_GUIDE.md)**
 **🗂️ [What's in the zip - every file explained](assets/pointlayer_whats_in_the_zip_full.png)**
+**📦 [Download the Whole ArcGIS Earth Unlocked Series of Tools - all 10 in one zip](https://github.com/Jim-dc95811/ArcGIS-Earth-Unlocked/raw/main/downloads/ArcGIS_Earth_Unlocked_All_Tools.zip)**
 
 Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for ArcGIS Earth.
 
@@ -69,7 +70,7 @@ It uses Python 3 standard-library modules plus Tkinter.
 
 ## Release details
 
-**Current release: PointLayer 1.4.1** (2026-11-06) - one obvious file: the zip now holds a `PointLayer_v1.4.1` folder with `PointLayer.bat` and `System Files` (the program). The program is the 1.4 program, unchanged. `PointLayer_v1.4.1.zip` SHA-256 `89c9b5f8b489b8711432fe142988b40f766ae72548ec55aea30703251d5d86fd`.
+**Current release: PointLayer 1.4.2** (2026-11-08) - Ready to Fly: `PointLayer.bat` finds Python or installs it for you (no admin) before starting; the program is the same 1.4. **PointLayer 1.4.1** (2026-11-06) - one obvious file: the zip now holds a `PointLayer_v1.4.1` folder with `PointLayer.bat` and `System Files` (the program). The program is the 1.4 program, unchanged. `PointLayer_v1.4.1.zip` SHA-256 `89c9b5f8b489b8711432fe142988b40f766ae72548ec55aea30703251d5d86fd`.
 
 **PointLayer 1.4** (2026-11-01) - a hardening release: every published point is checked off and any the service fails to return are reported; one bad record can no longer spoil the KMZ; single-point layers can appear; existing files are protected. Normal output is identical to 1.3. See [docs/POINTLAYER_V1.4_CHANGES.md](docs/POINTLAYER_V1.4_CHANGES.md).
 
@@ -196,7 +197,7 @@ PointLayer uses a deliberate maintenance rule:
 - do not add unrelated improvements during that change
 - every code modification gets a new version number
 
-The current known-good release is **PointLayer 1.4.1** (the 1.4 program in the one-obvious-file layout). The 1.4 and 1.3 packages remain in `releases/`.
+The current known-good release is **PointLayer 1.4.2** (the 1.4 program with the Ready to Fly launcher). The 1.4 and 1.3 packages remain in `releases/`.
 
 ## Human-AI engineering collaboration
 

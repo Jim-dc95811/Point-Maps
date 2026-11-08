@@ -1,5 +1,8 @@
 # Changelog
 
+## PointLayer 1.4.2 (2026-11-08)
+- Ready to Fly: `PointLayer.bat` - the launcher now gets the PC ready first: it finds Python or installs it for you (just for you, no admin - answer **Y**), then starts the tool. New file `System Files\Ready_To_Fly.ps1` (log: `System Files\Ready_To_Fly_log.txt`). Program byte-identical to the previous release. Live-tested by Jim 2026-11-08.
+
 ## PointLayer 1.4.1 (2026-11-06)
 - One obvious file: the zip holds a `PointLayer_v1.4.1` folder with `PointLayer.bat` and `System Files\PointLayer.py` (Jim's packaging rule). `README_PointLayer.txt` and `TEST_SOURCES.txt` are no longer in the download (they stay in the repository). Program unchanged (1.4).
 
