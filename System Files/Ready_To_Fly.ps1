@@ -1,13 +1,14 @@
 <#
-  Ready to Fly v1.0.1 - the shared "get this PC ready" step for ArcGIS Earth Unlocked tools.
+  Ready to Fly v1.1 - the shared "get this PC ready" step for ArcGIS Earth Unlocked tools.
   Called by a tool's one-click .bat. Windows PowerShell 5.1 compatible (no PS7-only syntax).
 
   Checks, in order, and fixes what it can, in plain words:
     0. Internet (Windows' own NCSI verdict + probe) - only a heads-up, never a stop:
        no internet = ArcGIS Earth's online basemaps won't load; captive Wi-Fi = sign in first.
     1. Python 3.9+ (py launcher, python on PATH - ignoring the Microsoft Store stub - and the usual
-       install folders). Missing: asks, then installs it for this user only (winget, else the official
-       python.org installer after checking its Python Software Foundation signature).
+       install folders). Missing: asks, then installs it for this user with Windows' own installer (winget),
+       shown normally - nothing silent, nothing downloaded and run by this script, no Windows setting changed
+       (v1.1). No winget: opens python.org's download page with what to click.
     2. Python libraries the tool needs (-Packages "pillow,pyserial"): pip install if missing.
     3. ArcGIS Earth (-NeedEarth): find it (remembered path, known folders, Windows' installed-programs
        list, folder search). Missing: offer Esri's free download page. Never installs it.
@@ -27,15 +28,13 @@ param(
     [switch]$NeedApi,
     [switch]$NeedTk,
     [int]$ApiWaitS = 90,
-    [int]$WingetMinutes = 20,        # give winget this long, then use the python.org installer             # how long to wait for ArcGIS Earth to answer at start
     [switch]$EarthOnly,              # only find ArcGIS Earth and save its path (taskbar shortcut maker)
     [switch]$Unattended              # no questions (answers 'no' to installs); for scheduled/test runs
 )
 
 $ErrorActionPreference = "Continue"
-$VERSION = "1.0.1"
+$VERSION = "1.1"
 $MIN_PY = [version]"3.9"
-$PY_FALLBACK = "3.14.0"   # used only if winget is missing; any published 3.x installer works
 $ESRI_PAGE = "https://www.esri.com/en-us/arcgis/products/arcgis-earth/downloads"
 $PY_PAGE = "https://www.python.org/downloads/windows/"
 $API = "http://localhost:8000/arcgisearth/camera"
@@ -121,6 +120,9 @@ function Find-Python {
 }
 
 function Install-Python {
+    # v1.1 (2026-11-08): nothing silent, nothing downloaded and run by this script, no Windows setting changed.
+    # Python comes from Windows' own installer (winget), shown normally, and the user answers its questions.
+    # Without winget: open python.org's download page and say what to click.
     $net = Test-Internet
     if ($net -ne "yes") {
         if ($net -eq "portal") { Bad "This Wi-Fi wants you to sign in first (open a web browser), then click again." }
@@ -129,55 +131,25 @@ function Install-Python {
     }
     $winget = Get-Command winget -ErrorAction SilentlyContinue
     if ($winget) {
-        Say "Installing Python with Windows' own installer (winget). This can take several minutes - the window may look stuck; let it run..." "Cyan"
-        Say "  (Windows Defender checks every new file, so the PC may run slow and look frozen for a few minutes. That's normal - don't close this window.)" "Yellow"
-        $ids = @("Python.Python.3.14", "Python.Python.3.13")
-        foreach ($id in $ids) {
-            $out = Join-Path $env:TEMP "ready_to_fly_winget.txt"
-            $wargs = "install -e --id $id --scope user --silent --accept-package-agreements --accept-source-agreements"
-            $p = Start-Process -FilePath $winget.Source -ArgumentList $wargs -NoNewWindow -PassThru -RedirectStandardOutput $out
-            $limit = (Get-Date).AddMinutes($WingetMinutes); $tick = 0
-            while (-not $p.HasExited -and (Get-Date) -lt $limit) {
-                Start-Sleep -Seconds 5; $tick++
-                if ($tick % 12 -eq 0) { Say ("  ...still installing (" + [int]($tick * 5 / 60) + " min). Don't close this window.") }
-            }
-            $timedOut = -not $p.HasExited
-            if ($timedOut) {
-                Log ("winget still running after " + $WingetMinutes + " min - stopping it")
-                try { $p.Kill() } catch {}
-                Start-Sleep -Seconds 3
-            } else { Log ("winget " + $id + " exit " + $p.ExitCode) }
-            if (Test-Path $out) { Get-Content $out -ErrorAction SilentlyContinue | Where-Object { $_ -match '\w' } | Select-Object -Last 15 | ForEach-Object { Log ("winget: " + $_) }; Remove-Item $out -ErrorAction SilentlyContinue }
+        Say "Installing Python with Windows' own installer (winget)." "Cyan"
+        Say "  If it asks you to agree to the terms, type Y and press Enter. It can take several minutes -" "Yellow"
+        Say "  Windows Defender may slow the PC while it checks the new files. Don't close this window." "Yellow"
+        foreach ($id in @("Python.Python.3.14", "Python.Python.3.13")) {
+            # run in this window, nothing captured, so its own questions and progress show normally
+            $p = Start-Process -FilePath $winget.Source -ArgumentList "install --exact --id $id --scope user" -NoNewWindow -Wait -PassThru
+            Log ("winget " + $id + " exit " + $p.ExitCode)
             if (Find-Python) { return $true }
-            if ($timedOut) { break }
         }
-        Warn "winget did not finish the job - trying the installer from python.org instead."
+        Warn "Windows' installer did not finish the job."
+    } else {
+        Warn "This PC does not have Windows' own installer (winget) - older Windows 10."
     }
-    $url = "https://www.python.org/ftp/python/$PY_FALLBACK/python-$PY_FALLBACK-amd64.exe"
-    $dst = Join-Path $env:TEMP "python-$PY_FALLBACK-amd64.exe"
-    Say ("Downloading Python " + $PY_FALLBACK + " from python.org (about 30 MB)...") "Cyan"
-    try {
-        [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
-        $r = [System.Net.WebRequest]::Create($url)
-        $r.Timeout = 30000; $r.ReadWriteTimeout = 60000
-        $resp = $r.GetResponse(); $in = $resp.GetResponseStream(); $fs = [System.IO.File]::Create($dst)
-        try { $in.CopyTo($fs) } finally { $fs.Close(); $in.Close(); $resp.Close() }
-    } catch { Bad ("The download failed: " + $_.Exception.Message); return $false }
-    $sig = Get-AuthenticodeSignature $dst
-    if ($sig.Status -ne 'Valid' -or $sig.SignerCertificate.Subject -notmatch 'Python Software Foundation') {
-        Bad "The downloaded file is not signed by the Python Software Foundation - not running it."
-        Log ("signature: " + $sig.Status + " " + $sig.SignerCertificate.Subject)
-        Remove-Item $dst -ErrorAction SilentlyContinue
-        return $false
-    }
-    Say "Installing Python for this user (no admin needed)..." "Cyan"
-    Say "  (This can take several minutes, and Windows Defender may slow the PC while it checks the new files. That's normal - don't close this window.)" "Yellow"
-    $p = Start-Process -FilePath $dst -ArgumentList "/quiet InstallAllUsers=0 InstallLauncherAllUsers=0 PrependPath=1 Include_launcher=1 Include_pip=1 Include_tcltk=1" -PassThru
-    $tick = 0
-    while (-not $p.HasExited) { Start-Sleep -Seconds 5; $tick++; if ($tick % 12 -eq 0) { Say ("  ...still installing (" + [int]($tick * 5 / 60) + " min). Don't close this window.") } }
-    Log ("python installer exit " + $p.ExitCode)
-    Remove-Item $dst -ErrorAction SilentlyContinue
-    return [bool](Find-Python)
+    Say "Opening python.org's download page for you:" "Cyan"
+    Say "  1. Click the yellow 'Download Python' button and open the file it downloads." "Yellow"
+    Say "  2. Click 'Install Now' (no admin needed), wait for 'Setup was successful', close it." "Yellow"
+    Say "  3. Double-click this .bat again." "Yellow"
+    try { Start-Process $PY_PAGE } catch {}
+    return $false
 }
 
 # ---------------------------------------------------------------- 3-5. ArcGIS Earth
@@ -260,11 +232,9 @@ else { Warn "No internet right now: ArcGIS Earth's online basemaps and imagery w
 $py = Find-Python
 if (-not $py) {
     Bad ("Python " + $MIN_PY + " or newer is not installed. " + $Tool + " is a Python program and needs it.")
-    if (Ask "Install Python now? It's free, from python.org, installs just for you (no admin). Takes several minutes.") {
+    if (Ask "Install Python now? It's free; Windows' own installer (winget) puts it in just for you (no admin). Takes several minutes.") {
         if (-not (Install-Python)) {
-            Bad "Python could not be installed automatically."
-            Say ("  If this is a work computer, ask IT to install Python 3 from " + $PY_PAGE) "Yellow"
-            Say ("  At home: download it from " + $PY_PAGE + " and tick 'Add python.exe to PATH'.") "Yellow"
+            Say ("  On a work computer that blocks installs, ask IT to install Python 3 from " + $PY_PAGE) "Yellow"
             exit 1
         }
         $py = Find-Python
