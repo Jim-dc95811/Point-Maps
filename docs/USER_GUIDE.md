@@ -1,4 +1,18 @@
-# PointLayer 1.4.1 User Guide
+# PointLayer 1.4.2 User Guide
+
+<!-- install-blurb:start -->
+> ### Installing PointLayer - read this first
+>
+> 1. **Extract All first:** right-click the downloaded zip > **Extract All**, then open the new folder. (Double-clicking files while they are still inside the zip does not work.)
+> 2. **Double-click `PointLayer.bat`** - the only .bat in the folder. This manual sits right next to it. The **System Files** folder holds the program - leave it alone.
+> 3. **Blue "Windows protected your PC" box?** Click **More info**, then **Run anyway**. It only asks the first time. (Or, before extracting: right-click the zip > **Properties** > tick **Unblock** > **OK**.)
+> 4. **Python - nothing to install by hand.** If Python is missing, the window asks **Install Python now? [Y/N]**: type **Y** and press Enter. It installs just for you (no admin needed). On an older PC this can take several minutes and Windows Defender may make the PC look frozen - **do not close the window**.
+> 5. An internet connection (it downloads public map layers).
+> 6. To see the result you need **ArcGIS Earth** (free from Esri: https://www.esri.com/en-us/arcgis/products/arcgis-earth/downloads).
+>
+> Something stops it? The window says what to do in plain words, and keeps a log in `System Files\Ready_To_Fly_log.txt`. On a work computer that blocks installs, ask IT to install Python 3 from python.org.
+<!-- install-blurb:end -->
+
 
 A printable copy of this guide is available as [PointLayer_User_Guide.pdf](PointLayer_User_Guide.pdf).
 
@@ -19,7 +33,7 @@ No QGIS, ArcGIS Pro, ArcPy, GDAL, GeoPandas, or Python `requests` package is req
 
 ## Start the program
 
-1. Download [`PointLayer_v1.4.2.zip`](../releases/PointLayer_v1.4.2.zip) and extract it. You get a `PointLayer_v1.4.2` folder holding just `PointLayer.bat` and `System Files`.
+1. Download [`PointLayer_v1.4.2.zip`](../releases/PointLayer_v1.4.2.zip) and extract it. You get a `PointLayer_v1.4.2` folder holding just `PointLayer.bat`, this guide as a PDF (`PointLayer_User_Guide.pdf`) and `System Files`.
 2. Python 3: nothing to install by hand. Since this version the .bat does it for you: if Python is missing it asks **Install Python now? [Y/N]** - answer **Y** (installs just for you, no admin; on an older PC it can take several minutes - don't close the window).
 3. Double-click `PointLayer.bat`. It uses the `py` launcher if present, otherwise `python`. Leave `System Files` alone - it holds the program.
 
