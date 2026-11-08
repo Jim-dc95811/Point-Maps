@@ -315,3 +315,7 @@ Possible future directions exist, but none are approved merely by appearing here
 - additional documentation/video
 
 Any functional change still follows the strict one-change/new-version rule above.
+
+## 2026-11-08 - PointLayer 2.1 (Claude)
+
+Re-hardening + Jim's live-test requests: NaN/blank locations skipped (NaN used to make the Region nan = whole layer invisible), dates and coded domains readable in the KMZ (GeoJSON raw), browser URLs, real Desktop, NOT_MAP_DATA message, Scale 1.0, ground marker disc (4 m, MultiGeometry Point+Polygon), **Show below (ft)** replaces the pixel LOD (minLodPixels = 5,967 ft*px/m x sqrt(box area) / feet; suggestion reproduces the old count LOD for the layer's extent, min 10,000 ft). Test server + rig in ArcGIS-Earth-Unlocked `tools/test-rigs/pointlayer_test_server.py` / `pointlayer_test_v21.py`. Change doc `docs/POINTLAYER_V2.1_CHANGES.md`. Nassau's ~25,000 ft suggestion is computed from an estimated extent - not yet checked against the real server.

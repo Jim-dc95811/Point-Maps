@@ -1,6 +1,10 @@
 # Changelog
 
 
+## PointLayer 2.1 - 2026-11-08
+
+- Re-hardening: "NaN" and blank locations no longer break the layer or the build; dates and code-list values readable in the popup; browser URLs (`?f=pjson`, `/query`) accepted; real (OneDrive) Desktop; plain message for a login page; wheel over the field list; thousands commas. New (Jim's live test): Scale 1.0 default, ground marker disc (4 m, grows as you zoom in), **Show below (ft)** replaces LOD cutoff. Live-tested by Jim. See [docs/POINTLAYER_V2.1_CHANGES.md](docs/POINTLAYER_V2.1_CHANGES.md). Zip `releases/PointLayer_v2.1.zip`; the 2.0 zip moved to `archive/`.
+
 ## PointLayer 2.0 - the 2.0 Reference (2026-11-08)
 
 - The whole ArcGIS Earth Unlocked family moved to 2.0 as one reference point (Jim). Program = 1.4 with only the version text changed (diff-checked). Zip `releases/PointLayer_v2.0.zip`; older zips moved to `archive/`.

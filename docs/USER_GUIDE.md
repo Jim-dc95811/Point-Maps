@@ -1,4 +1,4 @@
-# PointLayer 2.0 User Guide
+# PointLayer 2.1 User Guide
 
 <!-- install-blurb:start -->
 > ### Installing PointLayer - read this first
@@ -33,11 +33,11 @@ No QGIS, ArcGIS Pro, ArcPy, GDAL, GeoPandas, or Python `requests` package is req
 
 ## Start the program
 
-1. Download [`PointLayer_v2.0.zip`](../releases/PointLayer_v2.0.zip) and extract it. You get a `PointLayer_v2.0` folder holding just `PointLayer.bat`, this guide as a PDF (`PointLayer_User_Guide.pdf`) and `System Files`.
+1. Download [`PointLayer_v2.1.zip`](../releases/PointLayer_v2.1.zip) and extract it. You get a `PointLayer_v2.1` folder holding just `PointLayer.bat`, this guide as a PDF (`PointLayer_User_Guide.pdf`) and `System Files`.
 2. Python 3: nothing to install by hand. Since this version the .bat does it for you: if Python is missing it asks **Install Python now? [Y/N]** - answer **Y** (installs just for you, no admin; on an older PC it can take several minutes - don't close the window).
 3. Double-click `PointLayer.bat`. It uses the `py` launcher if present, otherwise `python`. Leave `System Files` alone - it holds the program.
 
-The window title shows **PointLayer 2.0** (the 1.4 program; the whole family moved to 2.0 on 8 Nov 2026).
+The window title shows **PointLayer 2.1**. What changed: [POINTLAYER_V2.1_CHANGES.md](POINTLAYER_V2.1_CHANGES.md).
 
 ## What's in the zip
 
@@ -45,7 +45,7 @@ The window title shows **PointLayer 2.0** (the 1.4 program; the whole family mov
 
 ## Step 1 - Paste a public ArcGIS service
 
-PointLayer accepts either:
+PointLayer accepts either (a link copied from the browser with `?f=pjson` or `/query` on the end works too):
 
 - `/FeatureServer`
 - `/FeatureServer/<layer id>`
@@ -56,7 +56,7 @@ Click **Read Service**.
 
 If the root has one queryable point layer, it is selected automatically. If several point layers are available, PointLayer presents a chooser: pick the layer and click **Use Selected Layer**.
 
-When the layer has been read, the status line reports the number of points and a suggested LOD cutoff (see Step 4), and the base name is filled in from the layer name.
+When the layer has been read, the status line reports the number of points and a suggested **Show below** height (see Step 4), and the base name is filled in from the layer name.
 
 ## Step 2 - Choose fields
 
@@ -115,7 +115,11 @@ To use your own icon, choose **Custom PNG** in the Symbol list, then click **Bro
 
 ### Scale
 
-Default `0.50`, which was used successfully for the hydrant H symbol. Larger numbers draw bigger icons.
+Default `1.0` (was 0.50 up to 2.0). Larger numbers draw bigger icons. ArcGIS Earth draws an icon at a fixed size on the screen: it does not grow as you zoom in - that is what the ground marker is for.
+
+### Ground marker
+
+**Disc on the ground**, on by default, **Size (m)** 4. Each point also gets a disc of that many metres on the ground, in the symbol's colour. Unlike the icon it grows as you zoom in (like a QGIS symbol sized in map units), so up close you see exactly where the hydrant stands on the imagery. Click it for the same popup. Untick it for icons only.
 
 ### Hide labels
 
@@ -125,18 +129,18 @@ Click the point to see its popup information.
 
 This is normally the useful setting for dense operational layers.
 
-### LOD cutoff
+### Show below (ft)
 
-LOD controls when ArcGIS Earth starts drawing the layer.
+The eye alt in feet - as ArcGIS Earth shows it at the bottom of the screen - below which the points draw. 0 or blank = always show. (Up to 2.0 this box was the pixel "LOD cutoff"; PointLayer now works that number out from the feet and the size of the layer.)
 
 A high-density layer should not necessarily appear while the user is looking at an entire county. Keeping the layer enabled but invisible until a useful zoom level prevents a wall of overlapping symbols.
 
-After Read Service, PointLayer fills in a suggested cutoff based on the number of points. The suggestion comes from these proven starting references and can be changed:
+After Read Service, PointLayer suggests a height from the number of points and the size of the layer - at least 10,000 ft. For county-size layers it reproduces these proven pixel references:
 
 - Nassau County hydrants: 3,250 published point features -> LOD 12,000
 - Duval / JFRD-JEA hydrants: 30,688 published point features -> LOD 30,000
 
-Raise LOD if the symbols appear too early. Lower it if they appear too late.
+Lower the feet if the symbols appear too early (too high up). Raise them if they appear too late. In a tilted view the points disappear a little sooner than looking straight down.
 
 ## Step 5 - BUILD
 
@@ -193,15 +197,23 @@ Scroll the upper part of the window. BUILD, the status line and the progress bar
 
 ### Too many symbols appear at once
 
-Increase the LOD cutoff.
+Lower **Show below (ft)**.
 
-### Symbols appear too late
+### Symbols appear too late (only when almost on top of them)
 
-Decrease the LOD cutoff.
+Raise **Show below (ft)**.
+
+### The icon looks tiny up close
+
+An icon keeps the same size on the screen. Keep **Disc on the ground** ticked - the disc grows as you zoom in. Raise **Scale** for a bigger icon.
 
 ### Popup is cluttered
 
 Rebuild and select fewer fields. The popup shows only the fields you selected.
+
+### "The server did not send map data"
+
+The link leads to a login page or something that is not an ArcGIS REST service. Use the public `/FeatureServer` or `/MapServer` link.
 
 ### "Output folder does not exist"
 
@@ -217,7 +229,11 @@ The service listed those points but did not send them, even when asked twice. Th
 
 ### A one-point or very small layer does not appear
 
-Lower the LOD cutoff. The layer's visibility box is small, so it reaches a high pixel threshold only when you are zoomed in very close.
+Since 2.1 Show below (ft) takes the layer's size into account. If it still appears too late, raise the feet (or set 0 = always).
+
+### Records "had no location"
+
+The service sent those records without a usable location (blank or "NaN"). They are counted and skipped; every other point is written.
 
 ### A "Latitude" or "Longitude" field looks wrong
 

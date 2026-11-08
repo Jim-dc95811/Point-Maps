@@ -1,4 +1,30 @@
-"""PointLayer 1.4
+"""PointLayer 2.1
+
+2.1 re-hardening (2026-11-08) - a layer with no dates, no code lists and no empty points
+is written exactly as by 2.0:
+  - a point the server sends with no location ("NaN" or blank) is counted as "no location"
+    instead of breaking the whole layer (NaN made the layer's Region invalid, so ArcGIS
+    Earth drew none of the points; a blank one stopped the build)
+  - date fields show as a date (2021-07-01) in the KMZ popup instead of 1625097600000
+  - fields with a code list (domain) show the meaning ("Pressure") instead of the code
+    (GeoJSON keeps the raw values)
+  - URLs copied from the browser with ?f=pjson or /query on the end are accepted
+  - the default output folder is the Desktop Windows really shows (OneDrive)
+  - a login page or other non-map answer gets a plain message
+  - the mouse wheel over the field list scrolls the list; Scale / Show below accept 12,000
+    and say which box is wrong
+  - bigger markers by default (Scale 1.0, was 0.5)
+  - optional ground marker: a disc of N metres on the ground under each point (default on,
+    4 m). An icon stays the same size on the screen; the disc grows as you zoom in, like a
+    QGIS symbol sized in map units. Click it for the same popup.
+  - "Show below (ft)" replaces "LOD cutoff": the eye alt in feet below which the points
+    show. The pixel LOD is worked out from it and the size of the layer, so a small layer
+    no longer needs you right on top of it. The suggestion keeps the old one for big layers
+    (Nassau, Duval) and is at least 10,000 ft. 0 or blank = always show.
+
+2.0 = 1.4 (2.0 Reference, 2026-11-08).
+
+PointLayer 1.4
 
 1.4 hardening (discovery, field selection, batching, LOD suggestion, icons and the
 KMZ/GeoJSON layout unchanged from 1.3):
@@ -23,13 +49,14 @@ import urllib.parse
 import urllib.request
 import zipfile
 import zlib
+from datetime import datetime, timezone
 from pathlib import Path
 import tkinter as tk
 from tkinter import filedialog, messagebox, ttk
 from xml.sax.saxutils import escape
 
 APP_NAME = "PointLayer"
-VERSION = "2.0"   # 2.0 Reference (2026-11-08): the whole ArcGIS Earth Unlocked family moved to 2.0 as one reference point - program = 1.4, only this text changed
+VERSION = "2.1"
 TIMEOUT = 90
 RETRIES = 3
 DEFAULT_PRECISION = 7
@@ -40,6 +67,34 @@ RECOMMENDED_KEYWORDS = (
     "id", "latitude", "longitude", "lat", "lon", "long", "status",
     "flow", "pressure", "size", "zone", "agency", "facility", "source",
 )
+
+
+NOT_MAP_DATA = ("The server did not send map data. It may need a login, or this is not an ArcGIS REST "
+                "service URL (it should end in /FeatureServer or /MapServer, maybe with a layer number).")
+
+
+def desktop_dir():
+    """The Desktop folder Windows really shows (it may have been moved into OneDrive)."""
+    if os.name == "nt":
+        try:
+            import ctypes
+            from ctypes import wintypes
+
+            class _GUID(ctypes.Structure):
+                _fields_ = [("Data1", wintypes.DWORD), ("Data2", wintypes.WORD),
+                            ("Data3", wintypes.WORD), ("Data4", ctypes.c_ubyte * 8)]
+            # FOLDERID_Desktop {B4BFCC3A-DB2C-424C-B029-7FE99A87C641}
+            fid = _GUID(0xB4BFCC3A, 0xDB2C, 0x424C,
+                        (ctypes.c_ubyte * 8)(0xB0, 0x29, 0x7F, 0xE9, 0x9A, 0x87, 0xC6, 0x41))
+            buf = ctypes.c_wchar_p()
+            if ctypes.windll.shell32.SHGetKnownFolderPath(ctypes.byref(fid), 0, None, ctypes.byref(buf)) == 0:
+                path = buf.value
+                ctypes.windll.ole32.CoTaskMemFree(buf)
+                if path and Path(path).is_dir():
+                    return Path(path)
+        except Exception:
+            pass
+    return Path.home() / "Desktop"
 
 
 def _request(url, params, retry_callback=None):
@@ -59,7 +114,10 @@ def _request(url, params, retry_callback=None):
             )
             with urllib.request.urlopen(req, timeout=TIMEOUT) as response:
                 raw = response.read()
-            result = json.loads(raw.decode("utf-8"))
+            try:
+                result = json.loads(raw.decode("utf-8"))
+            except (UnicodeDecodeError, json.JSONDecodeError):
+                raise RuntimeError(NOT_MAP_DATA) from None
             if isinstance(result, dict) and "error" in result:
                 err = result["error"]
                 if isinstance(err, dict):
@@ -87,7 +145,10 @@ def query_endpoint(layer_url):
 
 def normalize_service_url(url):
     """Accept either a service root or a specific ArcGIS layer URL."""
-    url = url.strip().rstrip("/")
+    url = url.strip()
+    # 2.1: URLs copied from the browser - drop ?f=pjson / #... and a trailing /query.
+    url = re.split(r"[?#]", url, maxsplit=1)[0].rstrip("/")
+    url = re.sub(r"/query$", "", url, flags=re.I).rstrip("/")
     match = re.search(r"/(FeatureServer|MapServer)(?:/(\d+))?$", url, re.I)
     if not match:
         raise ValueError(
@@ -289,6 +350,53 @@ def download_all_features(layer_url, ids, oid_field, fields, batch_size, precisi
     return features, missing
 
 
+# Show below (ft) <-> minLodPixels (2.1). Object Factory 1.2 calibration on Jim's screen
+# (looking straight down): a flat 309.6 m box hides at altitude x minLodPixels = 1.85 million
+# ft*px, i.e. about 5,967 ft*px per metre of box size (size = square root of its area).
+LOD_FT_PX_PER_M = 1_790_000.0 / 300.0
+MIN_SUGGEST_FT = 10000
+
+
+def box_size_m(west, east, south, north):
+    """Square root of the area of a lon/lat box, in metres."""
+    lat = math.radians((north + south) / 2.0)
+    w = abs(east - west) * 111_320.0 * max(math.cos(lat), 0.01)
+    h = abs(north - south) * 110_574.0
+    return math.sqrt(max(w * h, 1.0))
+
+
+def lod_pixels_for_feet(feet, bounds):
+    """minLodPixels for 'show below <feet> eye alt' on a layer with these Region bounds.
+    0 = always show."""
+    if not feet or feet <= 0:
+        return 0
+    return max(1, int(round(LOD_FT_PX_PER_M * box_size_m(*region_bounds(*bounds)) / feet)))
+
+
+def suggest_show_below_ft(feature_count, bounds):
+    """Feet that reproduce the old count-based LOD for this layer's size (so big county
+    layers keep the accepted behaviour), never below MIN_SUGGEST_FT, rounded to 500 ft."""
+    if not bounds:
+        return MIN_SUGGEST_FT
+    feet = LOD_FT_PX_PER_M * box_size_m(*region_bounds(*bounds)) / suggest_lod(feature_count)
+    return int(max(MIN_SUGGEST_FT, round(feet / 500.0) * 500))
+
+
+def query_extent(layer_url, retry_callback=None):
+    """(west, east, south, north) of all features in WGS84, or None if the server cannot say."""
+    try:
+        data = _request(query_endpoint(layer_url),
+                        {"f": "json", "where": "1=1", "returnExtentOnly": "true", "outSR": "4326"},
+                        retry_callback=retry_callback)
+        ext = data.get("extent") or {}
+        vals = [float(ext[k]) for k in ("xmin", "xmax", "ymin", "ymax")]
+        if all(math.isfinite(v) for v in vals) and -180 <= vals[0] <= vals[1] <= 180 and -90 <= vals[2] <= vals[3] <= 90:
+            return tuple(vals)
+    except Exception:
+        pass
+    return None
+
+
 def suggest_lod(feature_count):
     """Empirical starting point anchored to proven Nassau and Duval tests."""
     if feature_count <= 0:
@@ -320,6 +428,27 @@ def xml_text(value):
 
 def _png_chunk(kind, data):
     return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", zlib.crc32(kind + data) & 0xffffffff)
+
+
+GROUND_COLORS = {"Red dot": (235, 35, 35), "Blue dot": (30, 105, 235), "Yellow dot": (245, 185, 20),
+                 "Red H (hydrant)": (235, 35, 35)}
+
+
+def kml_color(rgb, alpha=255):
+    r, g, b = rgb
+    return f"{alpha:02x}{b:02x}{g:02x}{r:02x}"
+
+
+def ground_disc(lon, lat, diameter_m, sides=20):
+    """Closed ring of a disc on the ground (lon,lat pairs) - 2.1 ground marker."""
+    r = diameter_m / 2.0
+    dlat = r / 110_574.0
+    dlon = r / (111_320.0 * max(math.cos(math.radians(lat)), 0.01))
+    pts = []
+    for i in range(sides + 1):
+        a = 2 * math.pi * (i % sides) / sides
+        pts.append(f"{lon + dlon * math.cos(a):.7f},{lat + dlat * math.sin(a):.7f},0")
+    return " ".join(pts)
 
 
 def make_icon_png(kind="red_dot", size=32):
@@ -373,10 +502,39 @@ def built_in_icon_bytes(symbol_name):
 
 
 def extract_point(feature):
+    """(lon, lat), or None when the server sent no usable location - missing, blank, or the
+    "NaN" ArcGIS uses for an empty point (2.1: NaN used to break the whole layer)."""
     geom = feature.get("geometry") or {}
-    if "x" not in geom or "y" not in geom:
+    try:
+        x, y = float(geom["x"]), float(geom["y"])
+    except (KeyError, TypeError, ValueError):
         return None
-    return float(geom["x"]), float(geom["y"])
+    if not (math.isfinite(x) and math.isfinite(y)):
+        return None
+    return x, y
+
+
+def display_value(value, field=None):
+    """2.1: the text a KMZ popup shows for one value. Code-list (domain) fields show the
+    meaning; date fields (milliseconds since 1970, UTC) show the date. Anything else, and
+    every value without field information, is unchanged."""
+    if field and value is not None:
+        domain = field.get("domain") or {}
+        if domain.get("type") == "codedValue":
+            for cv in domain.get("codedValues") or []:
+                if str(cv.get("code")) == str(value):
+                    return cv.get("name")
+        if field.get("type") == "esriFieldTypeDate" and isinstance(value, (int, float)) and not isinstance(value, bool):
+            try:
+                dt = datetime.fromtimestamp(value / 1000.0, tz=timezone.utc)
+            except (OverflowError, OSError, ValueError):
+                return value
+            # A date with no time (UTC midnight, or midnight in the Americas = 00:00-12:00 UTC
+            # on the hour) shows as the date only; anything else keeps its time.
+            if dt.minute == 0 and dt.second == 0 and dt.microsecond == 0 and dt.hour <= 12:
+                return dt.strftime("%Y-%m-%d")
+            return dt.strftime("%Y-%m-%d %H:%M UTC")
+    return value
 
 
 def calculate_bounds(features):
@@ -466,7 +624,9 @@ def write_geojson(path, features, fields, source_url, layer_name):
 
 
 def write_kmz(path, features, fields, aliases, source_url, layer_name,
-              lod_pixels, icon_scale, icon_bytes, hide_labels=True):
+              lod_pixels, icon_scale, icon_bytes, hide_labels=True, field_meta=None,
+              ground_m=None, ground_rgb=(235, 35, 35)):
+    field_meta = field_meta or {}
     west, east, south, north = region_bounds(*calculate_bounds(features))
     label_scale = "0" if hide_labels else "1"
 
@@ -482,6 +642,10 @@ def write_kmz(path, features, fields, aliases, source_url, layer_name,
         '<hotSpot x="0.5" y="0.5" xunits="fraction" yunits="fraction"/>',
         '</IconStyle>',
         f'<LabelStyle><scale>{label_scale}</scale></LabelStyle>',
+    ] + ([
+        f'<LineStyle><color>ffffffff</color><width>1</width></LineStyle>',
+        f'<PolyStyle><color>{kml_color(ground_rgb, 230)}</color><outline>1</outline></PolyStyle>',
+    ] if ground_m else []) + [
         '</Style>',
         '<Folder>',
         f'<name>{escape(xml_text(layer_name))}</name>',
@@ -505,7 +669,7 @@ def write_kmz(path, features, fields, aliases, source_url, layer_name,
         # Use first non-empty selected field as popup title, without enabling map labels.
         title = "Point"
         for field in fields:
-            value = attrs.get(field)
+            value = display_value(attrs.get(field), field_meta.get(field))
             if value not in (None, ""):
                 title = xml_text(value)
                 break
@@ -517,19 +681,23 @@ def write_kmz(path, features, fields, aliases, source_url, layer_name,
         ])
         for field in fields:
             alias = aliases.get(field) or field
-            value = xml_text(attrs.get(field))
+            value = xml_text(display_value(attrs.get(field), field_meta.get(field)))
             lines.extend([
                 f'<Data name="{escape(xml_text(field))}">',
                 f'<displayName>{escape(xml_text(alias))}</displayName>',
                 f'<value>{escape(value)}</value>',
                 '</Data>',
             ])
-        lines.extend([
-            '</ExtendedData>',
-            '<Point><altitudeMode>clampToGround</altitudeMode>',
-            f'<coordinates>{lon:.7f},{lat:.7f},0</coordinates></Point>',
-            '</Placemark>',
-        ])
+        point_kml = ['<Point><altitudeMode>clampToGround</altitudeMode>',
+                     f'<coordinates>{lon:.7f},{lat:.7f},0</coordinates></Point>']
+        if ground_m:
+            point_kml = (['</ExtendedData>', '<MultiGeometry>'] + point_kml +
+                         ['<Polygon><tessellate>1</tessellate><altitudeMode>clampToGround</altitudeMode>'
+                          '<outerBoundaryIs><LinearRing><coordinates>' + ground_disc(lon, lat, ground_m) +
+                          '</coordinates></LinearRing></outerBoundaryIs></Polygon>', '</MultiGeometry>'])
+        else:
+            point_kml = ['</ExtendedData>'] + point_kml
+        lines.extend(point_kml + ['</Placemark>'])
 
     lines.extend(['</Folder>', '</Document>', '</kml>'])
     kml = "\n".join(lines).encode("utf-8")
@@ -564,14 +732,16 @@ class PointLayerApp:
         self.service_var = tk.StringVar(value="No service loaded")
         self.count_var = tk.StringVar(value="Features: —")
         self.batch_var = tk.StringVar(value="Batch size: —")
-        self.output_dir_var = tk.StringVar(value=str(Path.home() / "Desktop"))
+        self.output_dir_var = tk.StringVar(value=str(desktop_dir()))
         self.output_name_var = tk.StringVar(value="PointLayer")
         self.kmz_var = tk.BooleanVar(value=True)
         self.geojson_var = tk.BooleanVar(value=False)
         self.symbol_var = tk.StringVar(value="Red dot")
         self.custom_icon_var = tk.StringVar()
-        self.icon_scale_var = tk.StringVar(value="0.50")
-        self.lod_var = tk.StringVar(value="12000")
+        self.icon_scale_var = tk.StringVar(value="1.0")
+        self.lod_var = tk.StringVar(value=str(MIN_SUGGEST_FT))   # 2.1: Show below (ft)
+        self.ground_var = tk.BooleanVar(value=True)
+        self.ground_m_var = tk.StringVar(value="4")
         self.hide_labels_var = tk.BooleanVar(value=True)
         self.status_var = tk.StringVar(value="Paste a FeatureServer/MapServer service root or layer URL and click Read Service.")
 
@@ -611,6 +781,10 @@ class PointLayerApp:
         canvas.bind("<Configure>", fit_width)
 
         def mousewheel(event):
+            # 2.1: over the field list, the list scrolls (not the whole page).
+            tree = getattr(self, "tree", None)
+            if tree is not None and str(event.widget).startswith(str(tree)):
+                return None
             if event.delta:
                 canvas.yview_scroll(int(-1 * (event.delta / 120)), "units")
             return "break"
@@ -684,16 +858,22 @@ class PointLayerApp:
         cb.bind("<<ComboboxSelected>>", lambda e: self.update_custom_icon_state())
         ttk.Label(sr1, text="Scale").pack(side="left", padx=(18, 4))
         ttk.Entry(sr1, textvariable=self.icon_scale_var, width=8).pack(side="left")
-        ttk.Label(sr1, text="LOD cutoff").pack(side="left", padx=(18, 4))
+        ttk.Label(sr1, text="Show below (ft)").pack(side="left", padx=(18, 4))
         ttk.Entry(sr1, textvariable=self.lod_var, width=9).pack(side="left")
         ttk.Checkbutton(sr1, text="Hide labels", variable=self.hide_labels_var).pack(side="left", padx=10)
+        sr3 = ttk.Frame(style); sr3.pack(fill="x", padx=8, pady=3)
+        ttk.Label(sr3, text="Ground marker", width=12).pack(side="left")
+        ttk.Checkbutton(sr3, text="Disc on the ground", variable=self.ground_var).pack(side="left")
+        ttk.Label(sr3, text="Size (m)").pack(side="left", padx=(18, 4))
+        ttk.Entry(sr3, textvariable=self.ground_m_var, width=6).pack(side="left")
+        ttk.Label(sr3, text="Grows as you zoom in (the icon stays the same size on the screen).").pack(side="left", padx=10)
         sr2 = ttk.Frame(style); sr2.pack(fill="x", padx=8, pady=(3, 7))
         ttk.Label(sr2, text="Custom icon", width=12).pack(side="left")
         self.custom_entry = ttk.Entry(sr2, textvariable=self.custom_icon_var, state="disabled")
         self.custom_entry.pack(side="left", fill="x", expand=True)
         self.custom_btn = ttk.Button(sr2, text="Browse PNG", command=self.choose_custom_icon, state="disabled")
         self.custom_btn.pack(side="left", padx=(6, 0))
-        ttk.Label(sr2, text="Suggested LOD is empirical and remains user-adjustable.").pack(side="left", padx=10)
+        ttk.Label(sr2, text="Show below = eye alt in feet; suggested from the layer's size, change it freely. 0 = always.").pack(side="left", padx=10)
 
     def set_status(self, text):
         self.root.after(0, self.status_var.set, text)
@@ -732,7 +912,9 @@ class PointLayerApp:
         self.set_status("Counting features...")
         try:
             count = query_count(layer_url, self.retry_status)
-            self.root.after(0, self._apply_service, layer_url, meta, count)
+            self.set_status("Measuring the layer...")
+            extent = query_extent(layer_url, self.retry_status)
+            self.root.after(0, self._apply_service, layer_url, meta, count, extent)
         except Exception as exc:
             self.root.after(0, messagebox.showerror, APP_NAME, str(exc))
             self.set_status("Service read failed.")
@@ -783,7 +965,7 @@ class PointLayerApp:
         lb.bind("<Double-Button-1>", lambda e: choose())
         self.set_status(f"Found {len(candidates)} queryable point layers — choose one.")
 
-    def _apply_service(self, layer_url, meta, count):
+    def _apply_service(self, layer_url, meta, count, extent=None):
         self.layer_url = layer_url
         self.meta = meta
         self.feature_count = count
@@ -794,7 +976,7 @@ class PointLayerApp:
         self.count_var.set(f"Features: {count:,}")
         self.batch_var.set(f"Batch size: {batch:,}")
         self.output_name_var.set(sanitize_filename(name))
-        self.lod_var.set(str(suggest_lod(count)))
+        self.lod_var.set(f"{suggest_show_below_ft(count, extent):,}")
 
         for item in self.tree.get_children():
             self.tree.delete(item)
@@ -809,7 +991,7 @@ class PointLayerApp:
             self.field_rows.append({"iid": iid, "name": name_f, "alias": alias, "type": ftype, "keep": keep})
         self.build_btn.configure(state="normal")
         self.status_var.set(
-            f"Ready. Suggested LOD {self.lod_var.get()} from {count:,} points; adjust if desired."
+            f"Ready. Suggested: show below {self.lod_var.get()} ft for {count:,} points; adjust if desired."
         )
 
     def _field_recommended(self, name, alias, ftype):
@@ -884,15 +1066,30 @@ class PointLayerApp:
             messagebox.showerror(APP_NAME, "Select KMZ, GeoJSON, or both.")
             return
         try:
-            scale = float(self.icon_scale_var.get())
-            lod = int(float(self.lod_var.get()))
-            if scale <= 0:
-                raise ValueError
-            if lod < 0:
+            scale = float(self.icon_scale_var.get().strip().replace(",", ""))
+            if not (math.isfinite(scale) and scale > 0):
                 raise ValueError
         except ValueError:
-            messagebox.showerror(APP_NAME, "Icon scale must be > 0 and LOD cutoff must be 0 or greater.")
+            messagebox.showerror(APP_NAME, f"Scale: {self.icon_scale_var.get().strip()!r} - type a number above 0 (for example 0.5).")
             return
+        try:
+            text = self.lod_var.get().strip().replace(",", "")
+            lod_f = float(text) if text else 0.0
+            if not (math.isfinite(lod_f) and lod_f >= 0):
+                raise ValueError
+            lod = lod_f   # 2.1: feet (Show below); turned into pixels once the layer's size is known
+        except ValueError:
+            messagebox.showerror(APP_NAME, f"Show below (ft): {self.lod_var.get().strip()!r} - type the eye alt in feet, for example 10000 (0 = always show).")
+            return
+        ground_m = None
+        if self.ground_var.get():
+            try:
+                ground_m = float(self.ground_m_var.get().strip().replace(",", ""))
+                if not (math.isfinite(ground_m) and 0 < ground_m <= 1000):
+                    raise ValueError
+            except ValueError:
+                messagebox.showerror(APP_NAME, f"Ground marker size (m): {self.ground_m_var.get().strip()!r} - type metres above 0, for example 4.")
+                return
         output_dir = Path(self.output_dir_var.get()).expanduser()
         base = sanitize_filename(self.output_name_var.get())
         if not output_dir.exists():
@@ -921,10 +1118,10 @@ class PointLayerApp:
         self.build_btn.configure(state="disabled")
         self.read_btn.configure(state="disabled")
         self.progress.configure(value=0)
-        args = (fields, self.aliases(), output_dir, base, scale, lod)
+        args = (fields, self.aliases(), output_dir, base, scale, lod, ground_m)
         threading.Thread(target=self._build_worker, args=args, daemon=True).start()
 
-    def _build_worker(self, fields, aliases, output_dir, base, scale, lod):
+    def _build_worker(self, fields, aliases, output_dir, base, scale, lod, ground_m=None):
         try:
             self.set_status("Requesting all object IDs...")
             ids, oid_field = query_object_ids(self.layer_url, self.retry_status)
@@ -958,9 +1155,12 @@ class PointLayerApp:
                 else:
                     icon_bytes = built_in_icon_bytes(self.symbol_var.get())
                 kmz_path = output_dir / f"{base}.kmz"
+                lod_px = lod_pixels_for_feet(lod, calculate_bounds(features))
                 write_kmz(
                     kmz_path, features, fields, aliases, self.layer_url, layer_name,
-                    lod, scale, icon_bytes, self.hide_labels_var.get()
+                    lod_px, scale, icon_bytes, self.hide_labels_var.get(),
+                    field_meta={f.get("name"): f for f in (self.meta.get("fields") or [])},
+                    ground_m=ground_m, ground_rgb=GROUND_COLORS.get(self.symbol_var.get(), (235, 35, 35)),
                 )
                 written.append(kmz_path)
 
@@ -1045,6 +1245,30 @@ def run_self_test(output_dir):
     assert region_bounds(-81.8, -81.7, 30.5, 30.55) == (-81.8, -81.7, 30.5, 30.55)
     assert is_png(output_dir / "PointLayer_SELF_TEST.kmz") is False
     assert not list(output_dir.glob("*.partial"))
+    # 2.1: NaN / blank locations skipped; dates and code lists shown readably; browser URLs.
+    odd = [{"attributes": {"Type_": "A", "NameofOwner": 1, "FULLADDRESS": 1625097600000}, "geometry": {"x": "NaN", "y": "NaN"}},
+           {"attributes": {"Type_": "B", "NameofOwner": 1, "FULLADDRESS": 1625112000000}, "geometry": {"x": None, "y": None}},
+           {"attributes": {"Type_": "C", "NameofOwner": 2, "FULLADDRESS": 1625112000000}, "geometry": {"x": -81.8, "y": 30.5}}]
+    meta = {"NameofOwner": {"name": "NameofOwner", "type": "esriFieldTypeSmallInteger",
+                            "domain": {"type": "codedValue", "codedValues": [{"name": "County", "code": 1}, {"name": "City", "code": 2}]}},
+            "FULLADDRESS": {"name": "FULLADDRESS", "type": "esriFieldTypeDate"}}
+    kmz3 = output_dir / "PointLayer_SELF_TEST_odd.kmz"
+    write_kmz(kmz3, odd, fields, aliases, "u", "Self Test", 12000, 0.5, built_in_icon_bytes("Red dot"), True, field_meta=meta)
+    k3 = zipfile.ZipFile(kmz3).read("doc.kml").decode("utf-8")
+    assert k3.count("<Placemark>") == 1 and "nan" not in k3.lower() and "<value>City</value>" in k3 and "<value>2021-07-01</value>" in k3
+    assert normalize_service_url("https://e.test/x/FeatureServer/458?f=pjson")[1] == 458
+    assert normalize_service_url("https://e.test/x/FeatureServer/458/query?where=1%3D1")[1] == 458
+    # 2.1: Show below (ft) and the ground marker.
+    nassau_like = (-81.95, -81.25, 30.40, 30.75)
+    ft = suggest_show_below_ft(3250, nassau_like)
+    assert abs(lod_pixels_for_feet(ft, nassau_like) - 12000) / 12000 < 0.03
+    assert suggest_show_below_ft(6, (-81.942, -81.935, 30.393, 30.401)) == MIN_SUGGEST_FT
+    assert lod_pixels_for_feet(0, nassau_like) == 0
+    kmz4 = output_dir / "PointLayer_SELF_TEST_ground.kmz"
+    write_kmz(kmz4, features, fields, aliases, "u", "Self Test", 400, 1.0, built_in_icon_bytes("Red H (hydrant)"), True, ground_m=4)
+    k4 = zipfile.ZipFile(kmz4).read("doc.kml").decode("utf-8")
+    xml.dom.minidom.parseString(k4.encode("utf-8"))
+    assert k4.count("<Polygon>") == 2 and k4.count("<MultiGeometry>") == 2 and "<PolyStyle><color>e62323eb</color>" in k4
     print("SELF TEST PASS")
     print(kmz)
     print(geo)

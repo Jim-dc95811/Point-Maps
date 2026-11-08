@@ -13,7 +13,7 @@
 > 2. **Windows security warning:** Windows may warn about any program downloaded from the internet. Click **More info > Run anyway** (blue "Windows protected your PC" screen) or **Run**. To avoid the warning, right-click the zip > **Properties** > tick **Unblock** > **OK** before extracting.
 > 3. **Installing Python:** if the installer shows **"Add python.exe to PATH"**, tick it.
 
-### **⬇️ [3. DOWNLOAD POINTLAYER v2.0](releases/PointLayer_v2.0.zip)**
+### **⬇️ [3. DOWNLOAD POINTLAYER v2.1](releases/PointLayer_v2.1.zip)**
 **📖 [User manual](docs/USER_GUIDE.md)**
 **🗂️ [What's in the zip - every file explained](assets/pointlayer_whats_in_the_zip_full.png)**
 **📦 [Download the Whole ArcGIS Earth Unlocked Series of Tools - all 10 in one zip](https://github.com/Jim-dc95811/ArcGIS-Earth-Unlocked/raw/main/downloads/ArcGIS_Earth_Unlocked_All_Tools.zip)**
@@ -30,7 +30,7 @@ Turn public ArcGIS point layers into clean offline KMZ and GeoJSON overlays for 
 
 > If an agency publishes useful point data through a public ArcGIS FeatureServer or MapServer, ordinary users should be able to turn that layer into a clean offline ArcGIS Earth overlay without becoming GIS specialists.
 
-The current tool is **PointLayer 2.0** (the 1.4 program; the whole family moved to 2.0 on 8 Nov 2026 as one reference point).
+The current tool is **PointLayer 2.1** (8 Nov 2026): bigger markers, a ground marker that grows as you zoom in, **Show below (ft)** instead of a pixel LOD, and fixes for bad records, dates and code lists - [what changed](docs/POINTLAYER_V2.1_CHANGES.md).
 
 ```mermaid
 flowchart LR
@@ -49,7 +49,7 @@ flowchart LR
 4. If the service contains several point layers, choose the one you want.
 5. Select only the fields you want in the finished popup.
 6. Choose **KMZ**, **GeoJSON**, or both.
-7. For KMZ, select an icon, icon scale, and LOD cutoff.
+7. For KMZ, select an icon, icon scale, the ground marker size and **Show below (ft)**.
 8. Leave **Hide labels** checked if you want a clean map and prefer to click a point to see its information.
 9. Click **BUILD**.
 10. Open the finished KMZ in ArcGIS Earth.
@@ -70,7 +70,7 @@ It uses Python 3 standard-library modules plus Tkinter.
 
 ## Release details
 
-**Current release: PointLayer 2.0** (2026-11-08) - part of the [2.0 Reference](https://github.com/Jim-dc95811/ArcGIS-Earth-Unlocked/blob/main/REFERENCE_2.0.md): program = 1.4 with only the version text changed. **PointLayer 1.4.2** (2026-11-08) - Ready to Fly: `PointLayer.bat` finds Python or installs it for you (no admin) before starting; the program is the same 1.4. **PointLayer 1.4.1** (2026-11-06) - one obvious file: the zip now holds a `PointLayer_v1.4.1` folder with `PointLayer.bat` and `System Files` (the program). The program is the 1.4 program, unchanged. `PointLayer_v1.4.1.zip` SHA-256 `89c9b5f8b489b8711432fe142988b40f766ae72548ec55aea30703251d5d86fd`.
+**Current release: PointLayer 2.1** (2026-11-08) - re-hardening plus bigger markers, a ground marker and Show below (ft); see [docs/POINTLAYER_V2.1_CHANGES.md](docs/POINTLAYER_V2.1_CHANGES.md). `PointLayer_v2.1.zip` SHA-256 `e58e7efd49d2ccfa03f4b0df22a960959cbbe4625023ec287f06e3afef19d82f`, `PointLayer.py` `4d565ed2d330b7baef7ad06a6b591786851d860ff3b537eb87737745271bd22e`. **PointLayer 2.0** (2026-11-08) - part of the [2.0 Reference](https://github.com/Jim-dc95811/ArcGIS-Earth-Unlocked/blob/main/REFERENCE_2.0.md): program = 1.4 with only the version text changed. **PointLayer 1.4.2** (2026-11-08) - Ready to Fly: `PointLayer.bat` finds Python or installs it for you (no admin) before starting; the program is the same 1.4. **PointLayer 1.4.1** (2026-11-06) - one obvious file: the zip now holds a `PointLayer_v1.4.1` folder with `PointLayer.bat` and `System Files` (the program). The program is the 1.4 program, unchanged. `PointLayer_v1.4.1.zip` SHA-256 `89c9b5f8b489b8711432fe142988b40f766ae72548ec55aea30703251d5d86fd`.
 
 **PointLayer 1.4** (2026-11-01) - a hardening release: every published point is checked off and any the service fails to return are reported; one bad record can no longer spoil the KMZ; single-point layers can appear; existing files are protected. Normal output is identical to 1.3. See [docs/POINTLAYER_V1.4_CHANGES.md](docs/POINTLAYER_V1.4_CHANGES.md).
 
@@ -121,13 +121,13 @@ When **Hide labels** is checked, PointLayer sets the KML label scale to zero. Th
 
 For dense operational layers such as hydrants, this keeps the map readable.
 
-## LOD: keeping dense layers useful
+## Show below: keeping dense layers useful
 
-The LOD cutoff determines when ArcGIS Earth begins drawing the point layer.
+Since 2.1 you set **Show below (ft)** - the eye alt (as ArcGIS Earth shows it) below which the points draw. PointLayer turns it into the KML Region/LOD number using the size of the layer, so a small layer and a whole county both behave as typed. The suggestion after Read Service reproduces the accepted references below for county-size layers and is at least 10,000 ft.
 
 The layer can remain checked all the time while drawing nothing at low zoom. As the user zooms into a useful operational scale, the symbols appear.
 
-Two manually tuned reference results became the starting points for PointLayer's empirical LOD suggestion:
+Two manually tuned reference results (pixel LOD, used up to 2.0) are the anchors for the suggestion:
 
 | Test layer | Published features | Accepted LOD |
 | --- | ---: | ---: |
@@ -197,7 +197,7 @@ PointLayer uses a deliberate maintenance rule:
 - do not add unrelated improvements during that change
 - every code modification gets a new version number
 
-The current known-good release is **PointLayer 2.0** (the 1.4 program with the Ready to Fly launcher). Earlier packages are kept in `archive/`.
+The current known-good release is **PointLayer 2.1**. Earlier packages are kept in `archive/`.
 
 ## Human-AI engineering collaboration
 
